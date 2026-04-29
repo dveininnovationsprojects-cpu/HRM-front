@@ -1,0 +1,13 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background-color: #f8fafc; /* Professional Greyish Background */
+}
+
+/* Register Box-ah center panna */
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
