@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import DashboardLayout from '../layouts/DashboardLayout'; 
+import DashboardLayout from '../../layouts/DashboardLayout'; 
 import { ClipboardList, Clock, Bell, Send, CheckCircle, CheckSquare } from 'lucide-react';
-import api from '../api/apiConfig';
+import api from '../../api/apiConfig';
 import toast from 'react-hot-toast';
 
 const EmployeeDashboard = () => {
@@ -175,37 +175,40 @@ const EmployeeDashboard = () => {
                         </div>
                         
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                            {safeTasks.length > 0 ? safeTasks.map(task => (
-                                <div key={task.id || Math.random()} style={{ border: `1px solid ${colors.border}`, padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa' }}>
-                                    <div>
-                                        <p style={{ margin: 0, fontWeight: '600', color: colors.mainText, fontSize: '15px' }}>{task.moduleName || "Unnamed Task"}</p>
-                                        <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
-                                            <span style={{ fontSize: '12px', color: colors.secondaryText, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <ClipboardList size={14} /> ID: {task.projectId || "N/A"}
-                                            </span>
-                                            <span style={{ fontSize: '12px', color: colors.secondaryText, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                                <Clock size={14} /> Deadline: {task.deadline || "TBD"}
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                                        <span style={{ padding: '6px 12px', background: task.status === 'IN_PROGRESS' ? '#fffbeb' : colors.lightBlue, color: task.status === 'IN_PROGRESS' ? colors.warning : colors.primaryBlue, borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>
-                                            {task.status || "ASSIGNED"}
-                                        </span>
-                                        <button 
-                                            onClick={() => handleTaskComplete(task.id)}
-                                            style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: colors.success, color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}
-                                        >
-                                            <CheckSquare size={14} /> Complete
-                                        </button>
-                                    </div>
-                                </div>
-                            )) : (
-                                <div style={{ padding: '32px', textAlign: 'center', color: colors.secondaryText, border: `1px dashed ${colors.border}`, borderRadius: '12px' }}>
-                                    <ClipboardList size={40} style={{ opacity: 0.5, marginBottom: '10px' }} />
-                                    <p style={{ margin: 0, fontSize: '14px' }}>No tasks assigned currently. Great job!</p>
-                                </div>
-                            )}
+{/* Dashboard task list rendering FIX */}
+{safeTasks.length > 0 ? safeTasks.map(task => (
+    <div key={task.id} style={{ border: `1px solid ${colors.border}`, padding: '16px', borderRadius: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#fafafa', marginBottom: '10px' }}>
+        <div>
+            {/* module.moduleName thaan correct path */}
+            <p style={{ margin: 0, fontWeight: '600', color: colors.mainText, fontSize: '15px' }}>
+                {task.module?.moduleName || "Module Load Error"}
+            </p>
+            <div style={{ display: 'flex', gap: '16px', marginTop: '8px' }}>
+                <span style={{ fontSize: '12px', color: colors.secondaryText, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <ClipboardList size={14} /> Project ID: {task.module?.project?.id || "N/A"}
+                </span>
+                <span style={{ fontSize: '12px', color: colors.secondaryText, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Clock size={14} /> Deadline: {task.deadline || "TBD"}
+                </span>
+            </div>
+        </div>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span style={{ padding: '6px 12px', background: colors.lightBlue, color: colors.primaryBlue, borderRadius: '6px', fontSize: '12px', fontWeight: '600' }}>
+                {task.status || "ASSIGNED"}
+            </span>
+            <button 
+                onClick={() => handleTaskComplete(task.id)}
+                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: colors.success, color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '500' }}
+            >
+                <CheckSquare size={14} /> Complete
+            </button>
+        </div>
+    </div>
+)) : (
+    <div style={{ padding: '32px', textAlign: 'center', color: colors.secondaryText }}>
+        No tasks assigned to your ID yet.
+    </div>
+)}
                         </div>
                     </div>
 
@@ -216,14 +219,17 @@ const EmployeeDashboard = () => {
                             <div style={{ marginBottom: '16px' }}>
                                 <label style={{ fontSize: '13px', color: colors.secondaryText, fontWeight: '500', display: 'block', marginBottom: '8px' }}>Select Task</label>
                                 <select 
-                                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${colors.border}`, fontFamily: "'Inter', sans-serif", fontSize: '14px', outline: 'none', background: '#fff' }}
-                                    value={logData.taskId}
-                                    onChange={(e) => setLogData({ ...logData, taskId: e.target.value })}
-                                    required
-                                >
-                                    <option value="" disabled>-- Choose Active Task --</option>
-                                    {safeTasks.map(t => <option key={t.id || Math.random()} value={t.id}>{t.moduleName || `Task ${t.id}`}</option>)}
-                                </select>
+    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: `1px solid ${colors.border}`, background: '#fff' }}
+    value={logData.taskId}
+    onChange={(e) => setLogData({ ...logData, taskId: e.target.value })}
+    required
+>
+    <option value="" disabled>-- Choose Active Task --</option>
+    {/* task.module.moduleName access */}
+    {safeTasks.map(t => (
+        <option key={t.id} value={t.id}>{t.module?.moduleName || `Task ${t.id}`}</option>
+    ))}
+</select>
                             </div>
                             
                             <div style={{ marginBottom: '16px' }}>

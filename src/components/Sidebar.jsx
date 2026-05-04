@@ -36,11 +36,21 @@ const Sidebar = ({ role }) => {
       { name: 'Workforce', icon: <Users size={20}/>, path: '/manager/training' },
       { name: 'Payroll', icon: <FileText size={20}/>, path: '/manager/payroll' },
     ],
+    HR: [
+    { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/hr/dashboard' },
+    { name: 'Employee Mgmt', icon: <Users size={20}/>, path: '/hr/employees' },
+    { name: 'Leaves & Attendance', icon: <Clock size={20}/>, path: '/hr/leaves' },
+    { name: 'Recruitment', icon: <Briefcase size={20}/>, path: '/hr/recruitment' },
+    { name: 'Payroll Run', icon: <DollarSign size={20}/>, path: '/hr/payroll' },
+  ],
     EMPLOYEE: [
-      { name: 'My Work Log', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },
-      { name: 'Apply Leave', icon: <FileText size={20}/>, path: '/employee/leaves' },
-      { name: 'Payslips', icon: <FileText size={20}/>, path: '/employee/payroll' },
-    ]
+  { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },
+  { name: 'My Tasks & Performance', icon: <Briefcase size={20}/>, path: '/employee/tasks' }, 
+  { name: 'Apply Leave', icon: <FileText size={20}/>, path: '/employee/leaves' },
+  { name: 'My Attendance', icon: <Clock size={20}/>, path: '/employee/attendance' },
+  { name: 'Payslips', icon: <DollarSign size={20}/>, path: '/employee/payroll' },
+  { name: 'Alerts', icon: <Bell size={20}/>, path: '/employee/notifications' },
+]
   };
 
   const navItems = menuItems[role] || [];
