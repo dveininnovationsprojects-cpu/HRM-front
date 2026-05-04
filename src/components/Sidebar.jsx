@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Users, FileText, Clock, 
   Briefcase, DollarSign, Settings, Bell, LogOut 
 } from 'lucide-react';
+import toast from 'react-hot-toast'; // --- 1. Toast Import ---
 
 const Sidebar = ({ role }) => {
   const navigate = useNavigate();
@@ -11,11 +12,13 @@ const Sidebar = ({ role }) => {
 
   const handleLogout = () => {
     localStorage.clear();
-    alert("Logged out successfully! See you soon mamey!");
+    
+    // --- 2. Professional Toast Success (No Tanglish) ---
+    toast.success("Logged out successfully.");
+    
     navigate('/login');
   };
 
-  // ADMIN-ku nee sonna full workflow logic [cite: 1]
   const menuItems = {
     ADMIN: [
       { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/admin/dashboard' },
@@ -44,13 +47,11 @@ const Sidebar = ({ role }) => {
 
   return (
     <div style={{ width: '260px', height: '100vh', background: '#fff', borderRight: '1px solid #f1f5f9', position: 'fixed', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
-      {/* Branding Header [cite: 22] */}
       <div style={{ padding: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <div style={{ background: '#3b82f6', color: '#fff', width: '35px', height: '35px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>HR</div>
         <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1e293b' }}>HRM Soft</span>
       </div>
 
-      {/* Dynamic Nav Modules */}
       <nav style={{ flex: 1, padding: '0 20px', overflowY: 'auto' }}>
         {navItems.map((item) => (
           <Link 
@@ -69,7 +70,6 @@ const Sidebar = ({ role }) => {
         ))}
       </nav>
 
-      {/* Logout Action */}
       <button 
         onClick={handleLogout} 
         style={{ margin: '20px', padding: '15px', border: 'none', background: '#fff1f2', color: '#e11d48', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', fontWeight: '700' }}
