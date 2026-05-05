@@ -17,13 +17,13 @@ const Login = () => {
             const response = await api.post('/api/auth/login', credentials);
             
             if (response.status === 200) {
-                const { role, username, id } = response.data; 
+                const { role, username, id, token } = response.data; 
                 
-                // Auth details-ah local storage-la store pannu [cite: 62]
                 localStorage.setItem('role', role);
                 localStorage.setItem('username', username);
                 localStorage.setItem('userId', id);
                 localStorage.setItem('isAuthenticated', 'true');
+                if (token) localStorage.setItem('token', token);
 
                 alert("Login Successful! Role: " + role); 
 

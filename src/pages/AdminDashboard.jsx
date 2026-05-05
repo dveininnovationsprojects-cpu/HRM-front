@@ -16,7 +16,7 @@ const AdminDashboard = () => {
                 setSummary(sumRes.data);
 
                 // [cite: 3, 5] Employee Table API
-                const empRes = await api.get('/api/admin/employees');
+                const empRes = await api.get('/api/vc');
                 setEmployees(empRes.data.slice(0, 5));
             } catch (err) { console.error("Admin Dashboard load failed"); }
         };

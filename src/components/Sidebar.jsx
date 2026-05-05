@@ -33,6 +33,43 @@ const Sidebar = ({ role }) => {
       { name: 'Workforce', icon: <Users size={20}/>, path: '/manager/training' },
       { name: 'Payroll', icon: <FileText size={20}/>, path: '/manager/payroll' },
     ],
+    TL: [
+  {
+    name: 'Dashboard',
+    icon: <LayoutDashboard size={20}/>,
+    path: '/tl/dashboard'
+  },
+  {
+    name: 'My Projects',
+    icon: <Briefcase size={20}/>,
+    path: '/tl/projects'
+  },
+  {
+    name: 'My Team',
+    icon: <Users size={20}/>,
+    path: '/tl/team'
+  },
+  {
+    name: 'Assign Tasks',
+    icon: <FileText size={20}/>,
+    path: '/tl/tasks'
+  },
+  {
+    name: 'Performance',
+    icon: <DollarSign size={20}/>,
+    path: '/tl/performance'
+  },
+  {
+    name: 'Attendance',
+    icon: <Clock size={20}/>,
+    path: '/tl/attendance'
+  },
+  {
+    name: 'Leaves',
+    icon: <FileText size={20}/>,
+    path: '/tl/leaves'
+  }
+],
     EMPLOYEE: [
       { name: 'My Work Log', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },
       { name: 'Apply Leave', icon: <FileText size={20}/>, path: '/employee/leaves' },
@@ -44,38 +81,32 @@ const Sidebar = ({ role }) => {
 
   return (
     <div style={{ width: '260px', height: '100vh', background: '#fff', borderRight: '1px solid #f1f5f9', position: 'fixed', display: 'flex', flexDirection: 'column', zIndex: 1000 }}>
-      {/* Branding Header [cite: 22] */}
-      <div style={{ padding: '30px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ background: '#3b82f6', color: '#fff', width: '35px', height: '35px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>HR</div>
-        <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#1e293b' }}>HRM Soft</span>
+      {/* Branding Header */}
+      <div style={{ padding: '30px', display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+        <div style={{ background: '#2563EB', color: '#fff', width: '35px', height: '35px', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}>HR</div>
+        <span style={{ fontSize: '1.2rem', fontWeight: '800', color: '#0F172A' }}>HRM Soft</span>
       </div>
 
-      {/* Dynamic Nav Modules */}
-      <nav style={{ flex: 1, padding: '0 20px', overflowY: 'auto' }}>
+      {/* Scrollable Nav */}
+      <nav style={{ flex: 1, padding: '0 20px', overflowY: 'auto', scrollbarWidth: 'thin', scrollbarColor: '#DCE6F2 transparent' }}>
         {navItems.map((item) => (
-          <Link 
-            key={item.name} 
-            to={item.path} 
-            style={{ 
-              display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 20px', 
+          <Link
+            key={item.name}
+            to={item.path}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '15px', padding: '12px 20px',
               textDecoration: 'none', borderRadius: '12px', marginBottom: '8px',
-              color: location.pathname === item.path ? '#3b82f6' : '#64748b',
-              background: location.pathname === item.path ? '#eff6ff' : 'transparent',
-              transition: '0.3s'
+              color: location.pathname === item.path ? '#2563EB' : '#64748B',
+              background: location.pathname === item.path ? '#EAF2FF' : 'transparent',
+              fontWeight: location.pathname === item.path ? '700' : '600',
+              transition: '0.2s',
             }}
           >
-            {item.icon} <span style={{ fontWeight: '600' }}>{item.name}</span>
+            {item.icon} <span>{item.name}</span>
           </Link>
         ))}
+        <div style={{ height: '10px' }} />
       </nav>
-
-      {/* Logout Action */}
-      <button 
-        onClick={handleLogout} 
-        style={{ margin: '20px', padding: '15px', border: 'none', background: '#fff1f2', color: '#e11d48', borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '15px', fontWeight: '700' }}
-      >
-        <LogOut size={20}/> Logout
-      </button>
     </div>
   );
 };

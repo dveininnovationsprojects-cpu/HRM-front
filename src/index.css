@@ -1,13 +1,31 @@
-body {
+ employeeebody {
   margin: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #f8fafc; /* Professional Greyish Background */
+  background-color: #F5F9FF;
 }
 
-/* Register Box-ah center panna */
 .register-container {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
+}
+
+/* Sidebar scrollbar - visible only when scrolling */
+nav::-webkit-scrollbar {
+  width: 4px;
+}
+nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+nav::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 10px;
+  transition: background 0.3s;
+}
+nav:hover::-webkit-scrollbar-thumb {
+  background: #DCE6F2;
+}
+nav:hover::-webkit-scrollbar-thumb:hover {
+  background: #2563EB;
 }

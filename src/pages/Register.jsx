@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/apiConfig';
+import toast from 'react-hot-toast'; // --- MASS FIX 1: Import Toast ---
 
 const Register = () => {
     const navigate = useNavigate();
@@ -9,25 +10,33 @@ const Register = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Backend Validation Rules 
+        // Backend Validation Rules
         const usernameRegex = /^[a-zA-Z0-9_-]{3,15}$/;
         if (!usernameRegex.test(formData.username)) {
-            alert("Username: 3-15 chars, letters, numbers, _ and - only! ");
+            toast.error("Username: 3-15 chars, letters, numbers, _ and - only!"); // --- MASS FIX 2: Toast Error ---
             return;
         }
         if (!formData.email.endsWith('@gmail.com')) {
-            alert("Only @gmail.com is allowed! ");
+            toast.error("Only @gmail.com is allowed!"); // --- Toast Error ---
             return;
         }
 
         try {
             const response = await api.post('/api/auth/register', formData);
-            if (response.status === 200) {
-                alert("Registered Successfully! ");
-                navigate('/login'); 
+            if (response.status === 200 || response.status === 201) {
+                toast.success("Registered Successfully! 🎉"); // --- MASS FIX 3: Toast Success ---
+                
+                // Toast msg konja neram screen-la theriya 2 seconds wait panni redirect pandrom
+                setTimeout(() => {
+                    navigate('/login');
+                }, 2000); 
             }
         } catch (error) {
-            alert("Registration failed. Backend port or CORS check pannu mamey!");
+            const backendError = error.response?.data?.message || error.response?.data || error.message;
+            const errorMessage = typeof backendError === 'object' ? JSON.stringify(backendError) : backendError;
+            
+            toast.error("Registration Failed: " + errorMessage); // --- Toast Error for Backend 400 ---
+            console.error("Detailed Error:", error.response);
         }
     };
 
@@ -46,7 +55,6 @@ const Register = () => {
                         onChange={(e) => setFormData({...formData, roleName: e.target.value})}
                         style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
                     >
-                        {/* ADMIN role is added back in selection as you requested */}
                         <option value="EMPLOYEE">EMPLOYEE</option>
                         <option value="MANAGER">MANAGER</option>
                         <option value="TL">TEAM LEAD (TL)</option>
