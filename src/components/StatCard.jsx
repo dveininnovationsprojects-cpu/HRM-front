@@ -1,7 +1,7 @@
 import React from 'react';
 
 const StatCard = ({ title, value, subtext, icon, color }) => (
-  <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '12px', boxShadow: '0 2px 10px rgba(0,0,0,0.05)', flex: 1, display: 'flex', alignItems: 'center', gap: '15px' }}>
+  <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', boxShadow: '0 4px 20px rgba(37,99,235,0.08)', border: '1px solid #DCE6F2', flex: 1, display: 'flex', alignItems: 'center', gap: '15px', minWidth: '180px' }}>
     <div style={{ padding: '12px', borderRadius: '10px', backgroundColor: `${color}15`, color: color }}>
       {icon}
     </div>

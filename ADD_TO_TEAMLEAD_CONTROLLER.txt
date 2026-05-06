@@ -1,0 +1,25 @@
+// Add this to TeamLeadController.java
+
+@GetMapping("/assigned-tasks")
+public List<TaskAssignment> getAssignedTasks(@AuthenticationPrincipal UserDetails userDetails) {
+    Employee tl = getTL(userDetails);
+    
+    // Get all modules owned by this TL
+    List<ProjectModule> myModules = moduleRepo.findByOwnerTL_Id(tl.getId());
+    List<Long> moduleIds = myModules.stream()
+        .map(ProjectModule::getId)
+        .collect(Collectors.toList());
+    
+    // Get all tasks for those modules
+    return taskRepo.findAll().stream()
+        .filter(task -> moduleIds.contains(task.getModule().getId()))
+        .collect(Collectors.toList());
+}
+
+// Add these imports at top:
+import com.example.hrm_backend.model.ProjectModule;
+import com.example.hrm_backend.repository.ProjectModuleRepository;
+import java.util.stream.Collectors;
+
+// Add this field in TeamLeadController:
+private final ProjectModuleRepository moduleRepo;

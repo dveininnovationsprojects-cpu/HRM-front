@@ -1,0 +1,32 @@
+// Update TlDashboardServiceImpl.java - getModulesForProject method
+
+@Override
+public List<TlModuleDTO> getModulesForProject(Long projectId, Long tlId) {
+    List<ProjectModule> modules = moduleRepo.findByProject_Id(projectId).stream()
+            .filter(m -> m.getOwnerTL().getId().equals(tlId))
+            .collect(Collectors.toList());
+
+    List<TlModuleDTO> result = new ArrayList<>();
+
+    for (ProjectModule m : modules) {
+        Optional<TaskAssignment> taskOpt = taskRepo.findTopByModule_IdOrderByIdDesc(m.getId());
+
+        TlModuleDTO dto = TlModuleDTO.builder()
+                .moduleId(m.getId())
+                .moduleName(m.getModuleName())
+                .estimatedHours(m.getEstimatedHours())
+                .status(m.getStatus().name())
+                .build();
+
+        if (taskOpt.isPresent()) {
+            TaskAssignment task = taskOpt.get();
+            dto.setAssignedToId(task.getEmployee().getId());
+            dto.setAssignedToName(task.getEmployee().getFullName());
+            dto.setDeadline(task.getDeadline());              // ADD THIS LINE
+            dto.setActualHours(task.getActualHoursTaken());   // ADD THIS LINE
+        }
+
+        result.add(dto);
+    }
+    return result;
+}

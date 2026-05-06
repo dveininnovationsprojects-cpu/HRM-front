@@ -4,12 +4,30 @@ import api from "../../api/apiConfig";
 
 const TLLeaves = () => {
   const [leaves, setLeaves] = useState([]);
+  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
-    api.get("/api/leaves/all")
-      .then((r) => setLeaves(r.data || []))
-      .catch(console.error);
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const teamRes = await api.get("/api/tl/my-team");
+      const team = teamRes.data || [];
+      setTeamMembers(team);
+      
+      const teamIds = team.map(t => t.id);
+      
+      const leaveRes = await api.get("/api/leaves/all");
+      const allLeaves = leaveRes.data || [];
+      
+      const filtered = allLeaves.filter(l => teamIds.includes(l.employeeId));
+      
+      setLeaves(filtered);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const statusStyle = (status) => {
     if (status === "APPROVED") return S.approved;
@@ -21,7 +39,6 @@ const TLLeaves = () => {
     <DashboardLayout role="TL" title="Team Leaves">
       <div style={S.card}>
         <h3 style={S.title}>Leave Records</h3>
-        <p style={S.desc}>Read-only view — Approve/Reject is Admin only.</p>
         <table style={S.table}>
           <thead>
             <tr>
@@ -33,10 +50,10 @@ const TLLeaves = () => {
           <tbody>
             {leaves.length > 0 ? leaves.map((l, i) => (
               <tr key={i}>
-                <td style={S.td}>{l.employeeName || l.employee?.name || "—"}</td>
-                <td style={S.td}>{l.leaveType || "—"}</td>
-                <td style={S.td}>{l.startDate || l.fromDate || "—"}</td>
-                <td style={S.td}>{l.endDate || l.toDate || "—"}</td>
+                <td style={S.td}>{l.employeeName || l.employee?.fullName || l.employee?.name || "—"}</td>
+                <td style={S.td}>{l.leaveType || l.type || "—"}</td>
+                <td style={S.td}>{l.startDate || l.fromDate || l.from || "—"}</td>
+                <td style={S.td}>{l.endDate || l.toDate || l.to || "—"}</td>
                 <td style={S.td}>{l.reason || "—"}</td>
                 <td style={S.td}>
                   <span style={statusStyle(l.status)}>{l.status || "PENDING"}</span>
@@ -54,8 +71,7 @@ const TLLeaves = () => {
 
 const S = {
   card: { background: "#FFFFFF", padding: "25px", borderRadius: "18px", boxShadow: "0 10px 25px rgba(37,99,235,0.08)", border: "1px solid #DCE6F2" },
-  title: { marginBottom: "8px", color: "#0F172A", fontSize: "22px", fontWeight: "700" },
-  desc: { fontSize: "13px", color: "#94A3B8", marginBottom: "20px" },
+  title: { marginBottom: "20px", color: "#0F172A", fontSize: "22px", fontWeight: "700" },
   table: { width: "100%", borderCollapse: "collapse" },
   th: { textAlign: "left", padding: "12px 8px", color: "#64748B", fontSize: "14px", borderBottom: "1px solid #DCE6F2" },
   td: { padding: "15px 8px", color: "#0F172A", fontSize: "14px", borderBottom: "1px solid #F5F9FF" },

@@ -1,0 +1,13 @@
+// Add this endpoint to TeamLeadController.java
+
+@GetMapping("/assigned-tasks")
+public List<TaskAssignment> getAssignedTasks(@AuthenticationPrincipal UserDetails userDetails) {
+    Employee tl = getTL(userDetails);
+    // Get all tasks where modules are owned by this TL
+    List<ProjectModule> myModules = moduleRepo.findByOwnerTL_Id(tl.getId());
+    List<Long> moduleIds = myModules.stream().map(ProjectModule::getId).collect(Collectors.toList());
+    
+    return taskRepo.findAll().stream()
+        .filter(task -> moduleIds.contains(task.getModule().getId()))
+        .collect(Collectors.toList());
+}

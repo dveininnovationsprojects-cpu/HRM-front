@@ -1,0 +1,19 @@
+// TlModuleDTO.java - Add these fields
+
+package com.example.hrm_backend.dto;
+import lombok.Data;
+import lombok.Builder;
+import java.time.LocalDate;
+
+@Data
+@Builder
+public class TlModuleDTO {
+    private Long moduleId;
+    private String moduleName;
+    private int estimatedHours;
+    private String status;
+    private Long assignedToId;
+    private String assignedToName;
+    private LocalDate deadline; // ADD THIS
+    private Double actualHours; // ADD THIS
+}

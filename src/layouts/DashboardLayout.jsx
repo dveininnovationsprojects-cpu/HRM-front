@@ -170,7 +170,7 @@ const DashboardLayout = ({ children, role, title }) => {
             {/* ========================================== */}
             {/* 2. MAIN CONTENT AREA                       */}
             {/* ========================================== */}
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', width: isSidebarOpen ? 'calc(100vw - 260px)' : '100vw' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
                 
                 {/* ---------- TOP HEADER ---------- */}
                 <header style={{ 
@@ -326,7 +326,7 @@ const DashboardLayout = ({ children, role, title }) => {
                 </header>
 
                 {/* ---------- MAIN PAGE CONTENT ---------- */}
-                <main style={{ flex: 1, overflowY: 'auto', backgroundColor: colors.lightBg, padding: '32px', position: 'relative' }}>
+                <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', backgroundColor: colors.lightBg, padding: '30px', boxSizing: 'border-box' }}>
                     {children}
                 </main>
             </div>

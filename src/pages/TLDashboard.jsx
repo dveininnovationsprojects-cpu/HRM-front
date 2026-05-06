@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import StatCard from "../components/StatCard";
-import { Users, ClipboardList, TrendingUp, Send } from "lucide-react";
+import { Users, ClipboardList, TrendingUp, Send, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import api from "../api/apiConfig";
+import toast from "react-hot-toast";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const TLDashboard = () => {
   const [projects, setProjects] = useState([]);
   const [teamMembers, setTeamMembers] = useState([]);
-  const [modules, setModules] = useState([]);
-
-  const [selectedProject, setSelectedProject] = useState("");
-  const [selectedModule, setSelectedModule] = useState("");
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [deadline, setDeadline] = useState("");
+  const [allTasks, setAllTasks] = useState([]);
+  const [efficiency, setEfficiency] = useState("—");
+  const [taskStats, setTaskStats] = useState({ assigned: 0, inProgress: 0, completed: 0 });
+  const [tlInfo, setTlInfo] = useState({ name: "", email: "" });
 
   useEffect(() => {
     loadDashboardData();
@@ -20,9 +20,27 @@ const TLDashboard = () => {
 
   const loadDashboardData = async () => {
     try {
+      const name = localStorage.getItem("fullName") || "Team Lead";
+      const email = localStorage.getItem("email") || "";
+      setTlInfo({ name, email });
+
       const projectRes = await api.get("/api/tl/dashboard/projects");
-      console.log("Projects response:", projectRes.data);
-      setProjects(projectRes.data || []);
+      const projectList = projectRes.data || [];
+      setProjects(projectList);
+
+      const tasksRes = await api.get("/api/tl/assigned-tasks").catch(() => ({ data: [] }));
+      const tasks = tasksRes.data || [];
+      setAllTasks(tasks);
+
+      const assigned = tasks.filter(t => t.status === "ASSIGNED" || t.status === "PENDING").length;
+      const inProgress = tasks.filter(t => t.status === "IN_PROGRESS").length;
+      const completed = tasks.filter(t => t.status === "COMPLETED").length;
+      
+      setTaskStats({ assigned, inProgress, completed });
+      
+      const total = tasks.length;
+      const eff = total > 0 ? Math.round((completed / total) * 100) : 0;
+      setEfficiency(`${eff}%`);
 
       const teamRes = await api.get("/api/tl/my-team");
       setTeamMembers(teamRes.data || []);
@@ -33,48 +51,25 @@ const TLDashboard = () => {
 
   const handleProjectChange = async (e) => {
     const projectId = e.target.value;
-    setSelectedProject(projectId);
-    setSelectedModule("");
-    setModules([]);
     if (!projectId) return;
     try {
-      const res = await api.get(`/api/tl/dashboard/projects/${projectId}/modules`);
-      setModules(res.data || []);
+      await api.get(`/api/tl/dashboard/projects/${projectId}/modules`);
     } catch (err) {
       console.error("Module load failed", err);
     }
   };
 
-  const handleAssignTask = async () => {
-    if (!selectedProject || !selectedModule || !selectedEmployee || !deadline) {
-      alert("Please select project, module, employee and deadline");
-      return;
-    }
-
-    try {
-      await api.post("/api/tl/assign", {
-        moduleId: Number(selectedModule),
-        employeeId: Number(selectedEmployee),
-        deadline: deadline,
-      });
-
-      alert("Task assigned successfully");
-
-      setSelectedProject("");
-      setSelectedModule("");
-      setSelectedEmployee("");
-      setDeadline("");
-      setModules([]);
-
-      loadDashboardData();
-    } catch (err) {
-      console.error("Task assign failed", err);
-      alert("Task assign failed");
-    }
-  };
-
   return (
     <DashboardLayout role="TL" title="Team Lead Dashboard">
+      <div style={styles.welcomeCard}>
+        <div style={styles.welcomeContent}>
+          <div>
+            <h2 style={styles.welcomeTitle}>Welcome back, {tlInfo.name}! 👋</h2>
+            <p style={styles.welcomeText}>Here's what's happening with your team today.</p>
+          </div>
+          <div style={styles.welcomeIcon}>🎯</div>
+        </div>
+      </div>
       <div style={styles.cardsRow}>
         <StatCard
           title="My Team Members"
@@ -85,197 +80,313 @@ const TLDashboard = () => {
         />
 
         <StatCard
-          title="Assigned Projects"
-          value={projects.length}
+          title="Total Tasks"
+          value={allTasks.length}
           icon={<ClipboardList />}
-          color="#14B8A6"
-          subtext="In Progress"
+          color="#8B5CF6"
+          subtext="All Assigned"
+        />
+
+        <StatCard
+          title="In Progress"
+          value={taskStats.inProgress}
+          icon={<Clock />}
+          color="#3B82F6"
+          subtext="Active Tasks"
+        />
+
+        <StatCard
+          title="Completed"
+          value={taskStats.completed}
+          icon={<CheckCircle />}
+          color="#10B981"
+          subtext="Done"
         />
 
         <StatCard
           title="Efficiency"
-          value="88%"
+          value={efficiency}
           icon={<TrendingUp />}
           color="#F59E0B"
-          subtext="Team Avg"
+          subtext="Completion Rate"
         />
       </div>
 
-      <div style={styles.grid}>
+      <div style={styles.middleRow}>
         <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Assigned Projects</h3>
-
-          <table style={styles.table}>
-            <thead>
-              <tr>
-                <th style={styles.th}>Project Name</th>
-                <th style={styles.th}>Status</th>
-                <th style={styles.th}>Total Modules</th>
-                <th style={styles.th}>Assigned Modules</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {projects.length > 0 ? (
-                projects.map((project) => (
-                  <tr key={project.id}>
-                    <td style={styles.td}>
-                      {project.projectName || project.name || "Unnamed Project"}
-                    </td>
-
-                    <td style={styles.td}>
-                      <span style={styles.statusBadge}>
-                        {project.status || "In Progress"}
-                      </span>
-                    </td>
-
-                    <td style={styles.td}>
-                      {project.totalModules || 0}
-                    </td>
-
-                    <td style={styles.td}>
-                      {project.assignedModules || 0}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="4" style={styles.emptyText}>
-                    No assigned projects found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div style={styles.card}>
-          <h3 style={styles.cardTitle}>Assign New Task</h3>
-
-          <p style={styles.desc}>
-            Select project, module and assign to team member.
-          </p>
-
-          <div style={styles.form}>
-            <select
-              value={selectedProject}
-              onChange={handleProjectChange}
-              style={styles.input}
-            >
-              <option value="">Select Project</option>
-              {projects.map((project) => (
-                <option key={project.projectId} value={project.projectId}>
-                  {project.projectName}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedModule}
-              onChange={(e) => setSelectedModule(e.target.value)}
-              style={styles.input}
-              disabled={!selectedProject}
-            >
-              <option value="">Select Module</option>
-              {modules.map((module) => (
-                <option key={module.moduleId} value={module.moduleId}>
-                  {module.moduleName}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={selectedEmployee}
-              onChange={(e) => setSelectedEmployee(e.target.value)}
-              style={styles.input}
-            >
-              <option value="">Select Employee</option>
-              {teamMembers.map((emp) => (
-                <option key={emp.id} value={emp.id}>
-                  {emp.name || emp.employeeName || emp.user?.username || "Employee"}
-                </option>
-              ))}
-            </select>
-
-            <input
-              type="date"
-              value={deadline}
-              onChange={(e) => setDeadline(e.target.value)}
-              style={styles.input}
-            />
-
-            <button onClick={handleAssignTask} style={styles.button}>
-              <Send size={18} />
-              Assign Module
-            </button>
+          <h3 style={styles.cardTitle}>Team Members</h3>
+          <div style={{ maxHeight: "350px", overflowY: "auto" }}>
+            {teamMembers.length > 0 ? (
+              teamMembers.map((member) => (
+                <div key={member.id} style={styles.memberCard}>
+                  <div style={styles.memberAvatar}>
+                    {(member.fullName || member.name || "U").charAt(0).toUpperCase()}
+                  </div>
+                  <div style={styles.memberInfo}>
+                    <div style={styles.memberName}>{member.fullName || member.name || "Employee"}</div>
+                    <div style={styles.memberEmail}>{member.email || member.user?.username || "—"}</div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div style={styles.emptyText}>No team members found.</div>
+            )}
           </div>
         </div>
+
+        <div style={styles.card}>
+          <h3 style={styles.cardTitle}>My Projects</h3>
+          <div style={{ maxHeight: "350px", overflowY: "auto" }}>
+            {projects.length > 0 ? (
+              projects.map((project) => (
+                <div key={project.projectId} style={styles.projectCard}>
+                  <div>
+                    <div style={styles.projectName}>{project.projectName}</div>
+                    <div style={styles.projectMeta}>
+                      <span>{project.totalModules || 0} modules</span>
+                      <span style={{ margin: "0 8px", color: "#CBD5E1" }}>•</span>
+                      <span>{project.assignedModules || 0} assigned</span>
+                    </div>
+                  </div>
+                  <span style={styles.statusBadge}>{project.status || "Active"}</span>
+                </div>
+              ))
+            ) : (
+              <div style={styles.emptyText}>No projects assigned.</div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div style={styles.chartCard}>
+        <h3 style={styles.cardTitle}>Project Modules Overview</h3>
+        <ResponsiveContainer width="100%" height={350}>
+          <BarChart data={projects.map(p => ({
+            name: p.projectName?.substring(0, 12) || "Project",
+            total: p.totalModules || 0,
+            assigned: p.assignedModules || 0
+          }))} margin={{ top: 10, right: 20, left: 10, bottom: 60 }} barCategoryGap="20%">
+            <XAxis 
+              dataKey="name" 
+              tick={{ fontSize: 11, fill: "#64748B", fontWeight: "500" }} 
+              angle={-25} 
+              textAnchor="end" 
+              height={80}
+              stroke="#CBD5E1"
+            />
+            <YAxis 
+              tick={{ fontSize: 11, fill: "#64748B", fontWeight: "500" }}
+              stroke="#CBD5E1"
+              allowDecimals={false}
+            />
+            <Tooltip 
+              contentStyle={{ 
+                background: "rgba(255, 255, 255, 0.95)",
+                backdropFilter: "blur(10px)",
+                borderRadius: "12px", 
+                border: "1px solid rgba(226, 232, 240, 0.8)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.12)"
+              }} 
+              cursor={{ fill: "rgba(59, 130, 246, 0.05)" }}
+            />
+            <Legend 
+              wrapperStyle={{ fontSize: "13px", fontWeight: "600" }}
+              iconType="circle"
+            />
+            <Bar dataKey="total" fill="url(#blueGradient)" name="Total Modules" radius={[10, 10, 0, 0]} barSize={35} />
+            <Bar dataKey="assigned" fill="url(#greenGradient)" name="Assigned" radius={[10, 10, 0, 0]} barSize={35} />
+            <defs>
+              <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#60A5FA" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#3B82F6" stopOpacity={0.8} />
+              </linearGradient>
+              <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#34D399" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#10B981" stopOpacity={0.8} />
+              </linearGradient>
+            </defs>
+          </BarChart>
+        </ResponsiveContainer>
       </div>
     </DashboardLayout>
   );
 };
 
+const getStatusStyle = (status) => {
+  if (status === "COMPLETED") return styles.completedBadge;
+  if (status === "IN_PROGRESS") return styles.inProgressBadge;
+  return styles.assignedBadge;
+};
+
 const styles = {
+  welcomeCard: {
+    background: "linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)",
+    padding: "30px",
+    borderRadius: "18px",
+    marginBottom: "30px",
+    boxShadow: "0 10px 30px rgba(37, 99, 235, 0.3)",
+  },
+
+  welcomeContent: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  welcomeTitle: {
+    color: "#FFFFFF",
+    fontSize: "28px",
+    fontWeight: "700",
+    margin: 0,
+    marginBottom: "8px",
+  },
+
+  welcomeText: {
+    color: "#E0E7FF",
+    fontSize: "16px",
+    margin: 0,
+  },
+
+  welcomeIcon: {
+    fontSize: "60px",
+  },
+
   cardsRow: {
     display: "flex",
     gap: "20px",
     marginBottom: "30px",
+    flexWrap: "nowrap",
   },
 
-  grid: {
+  middleRow: {
     display: "grid",
-    gridTemplateColumns: "1.5fr 1fr",
-    gap: "30px",
+    gridTemplateColumns: "1fr 1fr",
+    gap: "24px",
+    marginBottom: "30px",
   },
 
   card: {
-    background: "#FFFFFF",
+    background: "rgba(255, 255, 255, 0.9)",
+    backdropFilter: "blur(10px)",
     padding: "25px",
-    borderRadius: "18px",
-    boxShadow: "0 10px 25px rgba(37, 99, 235, 0.08)",
-    border: "1px solid #E2E8F0",
+    borderRadius: "20px",
+    boxShadow: "0 8px 32px rgba(37, 99, 235, 0.1)",
+    border: "1px solid rgba(226, 232, 240, 0.6)",
+  },
+
+  chartCard: {
+    background: "rgba(255, 255, 255, 0.95)",
+    backdropFilter: "blur(12px)",
+    padding: "28px",
+    borderRadius: "20px",
+    boxShadow: "0 10px 40px rgba(59, 130, 246, 0.15)",
+    border: "1px solid rgba(226, 232, 240, 0.7)",
   },
 
   cardTitle: {
     marginBottom: "20px",
     color: "#0F172A",
-    fontSize: "24px",
+    fontSize: "20px",
     fontWeight: "700",
-  },
-
-  desc: {
-    fontSize: "14px",
-    color: "#64748B",
-    marginBottom: "20px",
-  },
-
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-  },
-
-  th: {
-    textAlign: "left",
-    padding: "12px 8px",
-    color: "#64748B",
-    fontSize: "14px",
-    borderBottom: "1px solid #E2E8F0",
-  },
-
-  td: {
-    padding: "15px 8px",
-    color: "#0F172A",
-    fontSize: "14px",
-    borderBottom: "1px solid #F1F5F9",
   },
 
   statusBadge: {
     background: "#EAF2FF",
     color: "#2563EB",
-    padding: "6px 10px",
+    padding: "6px 12px",
     borderRadius: "8px",
     fontSize: "12px",
     fontWeight: "700",
+  },
+
+  assignedBadge: {
+    background: "#F1F5F9",
+    color: "#64748B",
+    padding: "5px 10px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontWeight: "700",
+  },
+
+  inProgressBadge: {
+    background: "#EAF2FF",
+    color: "#3B82F6",
+    padding: "5px 10px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontWeight: "700",
+  },
+
+  completedBadge: {
+    background: "#DCFCE7",
+    color: "#10B981",
+    padding: "5px 10px",
+    borderRadius: "8px",
+    fontSize: "12px",
+    fontWeight: "700",
+  },
+
+  projectCard: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "16px",
+    background: "#F8FAFC",
+    borderRadius: "12px",
+    marginBottom: "12px",
+    border: "1px solid #E2E8F0",
+  },
+
+  projectName: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#0F172A",
+    marginBottom: "6px",
+  },
+
+  projectMeta: {
+    fontSize: "13px",
+    color: "#64748B",
+  },
+
+  memberCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: "14px",
+    padding: "14px",
+    background: "#F8FAFC",
+    borderRadius: "12px",
+    marginBottom: "10px",
+    border: "1px solid #E2E8F0",
+  },
+
+  memberAvatar: {
+    width: "45px",
+    height: "45px",
+    borderRadius: "50%",
+    background: "linear-gradient(135deg, #3B82F6, #2563EB)",
+    color: "#FFFFFF",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "18px",
+    fontWeight: "700",
+  },
+
+  memberInfo: {
+    flex: 1,
+  },
+
+  memberName: {
+    fontSize: "15px",
+    fontWeight: "600",
+    color: "#0F172A",
+    marginBottom: "4px",
+  },
+
+  memberEmail: {
+    fontSize: "13px",
+    color: "#64748B",
   },
 
   emptyText: {
@@ -283,38 +394,6 @@ const styles = {
     padding: "45px",
     color: "#94A3B8",
     fontSize: "15px",
-  },
-
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "15px",
-  },
-
-  input: {
-    width: "100%",
-    padding: "13px",
-    borderRadius: "10px",
-    border: "1px solid #DCE6F2",
-    fontSize: "14px",
-    outline: "none",
-    background: "#FFFFFF",
-  },
-
-  button: {
-    width: "100%",
-    padding: "14px",
-    background: "linear-gradient(135deg,#2563EB,#3B82F6)",
-    color: "#FFFFFF",
-    border: "none",
-    borderRadius: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "10px",
-    fontSize: "15px",
-    fontWeight: "600",
-    cursor: "pointer",
   },
 };
 

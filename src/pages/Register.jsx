@@ -1,75 +1,299 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/apiConfig';
-import toast from 'react-hot-toast'; // --- MASS FIX 1: Import Toast ---
+import toast from 'react-hot-toast';
+import { 
+    Eye, EyeOff, Lock, User, ShieldCheck, 
+    AlertCircle, ArrowRight, Mail, KeyRound, 
+    Loader2, UserPlus, CheckCircle2, Info, ChevronDown
+} from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
-    const [formData, setFormData] = useState({ username: '', email: '', password: '', roleName: 'EMPLOYEE' });
 
+    // =========================================================================
+    // 1. BRAND COLORS (Pure Elite HRM Theme)
+    // =========================================================================
+    const colors = {
+        primaryBlue: '#2563EB',    
+        lightBlue: '#EFF6FF',      
+        background: '#F8FAFC',     
+        cardWhite: '#FFFFFF',      
+        mainText: '#1E293B',       
+        secondaryText: '#64748B',  
+        success: '#10B981',        
+        warning: '#F59E0B',        
+        danger: '#EF4444',         
+        border: '#E2E8F0',         
+        inputFocus: '#3B82F6'
+    };
+
+    // =========================================================================
+    // 2. STATE MANAGEMENT
+    // =========================================================================
+    const [formData, setFormData] = useState({ 
+        username: '', 
+        email: '', 
+        password: '', 
+        roleName: 'EMPLOYEE' 
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [passStrength, setPassStrength] = useState({ score: 0, label: '', color: 'transparent' });
+
+    // =========================================================================
+    // 3. PASSWORD STRENGTH CALCULATION
+    // =========================================================================
+    const evaluatePassword = (password) => {
+        let score = 0;
+        if (!password) return { score: 0, label: '', color: 'transparent' };
+        if (password.length >= 6) score += 1;
+        if (password.length >= 8) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[0-9]/.test(password)) score += 1;
+        if (/[^A-Za-z0-9]/.test(password)) score += 1;
+
+        if (score <= 2) return { score, label: 'Weak Security', color: colors.danger }; 
+        if (score === 3 || score === 4) return { score, label: 'Moderate Security', color: colors.warning }; 
+        return { score, label: 'Elite Security (Strong)', color: colors.success }; 
+    };
+
+    const handlePasswordChange = (e) => {
+        const val = e.target.value;
+        setFormData({ ...formData, password: val });
+        setPassStrength(evaluatePassword(val));
+    };
+
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    // =========================================================================
+    // 4. SUBMIT REGISTRATION LOGIC
+    // =========================================================================
     const handleSubmit = async (e) => {
         e.preventDefault();
         
-        // Backend Validation Rules
         const usernameRegex = /^[a-zA-Z0-9_-]{3,15}$/;
         if (!usernameRegex.test(formData.username)) {
-            toast.error("Username: 3-15 chars, letters, numbers, _ and - only!"); // --- MASS FIX 2: Toast Error ---
+            toast.error("Username: 3-15 chars only!"); 
             return;
         }
         if (!formData.email.endsWith('@gmail.com')) {
-            toast.error("Only @gmail.com is allowed!"); // --- Toast Error ---
+            toast.error("Please use corporate @gmail.com!"); 
             return;
         }
+        if (passStrength.score < 3) {
+            toast.error("Set a stronger password for workplace access!");
+            return;
+        }
+
+        setIsLoading(true);
 
         try {
             const response = await api.post('/api/auth/register', formData);
             if (response.status === 200 || response.status === 201) {
-                toast.success("Registered Successfully! 🎉"); // --- MASS FIX 3: Toast Success ---
+                toast.success("Account Requested Successfully! 🚀");
+                toast("Admin verification is in progress.", { icon: '⏳', duration: 4000 });
                 
-                // Toast msg konja neram screen-la theriya 2 seconds wait panni redirect pandrom
-                setTimeout(() => {
-                    navigate('/login');
-                }, 2000); 
+                setTimeout(() => navigate('/login'), 3000); 
             }
         } catch (error) {
             const backendError = error.response?.data?.message || error.response?.data || error.message;
-            const errorMessage = typeof backendError === 'object' ? JSON.stringify(backendError) : backendError;
-            
-            toast.error("Registration Failed: " + errorMessage); // --- Toast Error for Backend 400 ---
-            console.error("Detailed Error:", error.response);
+            toast.error("Request Failed: " + (typeof backendError === 'string' ? backendError : "Conflict detected"));
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    return (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#f8fafc' }}>
-            <div style={{ background: '#fff', padding: '40px', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', width: '100%', maxWidth: '400px' }}>
-                <h2 style={{ textAlign: 'center', color: '#3b82f6', marginBottom: '25px' }}>HRM Soft Register</h2>
-                <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                    <input type="text" placeholder="Username (3-15 chars)" onChange={(e) => setFormData({...formData, username: e.target.value})} required />
-                    <input type="email" placeholder="Gmail Address" onChange={(e) => setFormData({...formData, email: e.target.value})} required />
-                    <input type="password" placeholder="Strong Password (min 8 chars)" onChange={(e) => setFormData({...formData, password: e.target.value})} required />
-                    
-                    <label style={{ fontSize: '14px', color: '#64748b' }}>Select Role:</label>
-                    <select 
-                        value={formData.roleName}
-                        onChange={(e) => setFormData({...formData, roleName: e.target.value})}
-                        style={{ padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}
-                    >
-                        <option value="EMPLOYEE">EMPLOYEE</option>
-                        <option value="MANAGER">MANAGER</option>
-                        <option value="TL">TEAM LEAD (TL)</option>
-                        <option value="HR">HR</option>
-                        <option value="ADMIN">ADMIN</option>
-                    </select>
+    // =========================================================================
+    // 5. STYLES (PIXEL PERFECT POSITIONING)
+    // =========================================================================
+    const styles = {
+        container: {
+            minHeight: '100vh', width: '100vw', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: colors.background, fontFamily: "'Inter', sans-serif", position: 'relative'
+        },
+        card: {
+            backgroundColor: colors.cardWhite, border: `1px solid ${colors.border}`, borderRadius: '24px', 
+            padding: '40px', width: '100%', maxWidth: '450px', boxShadow: '0 15px 35px -5px rgba(0, 0, 0, 0.05)',
+            position: 'relative', zIndex: 10
+        },
+        // The container holding label + input
+        inputGroup: { marginBottom: '20px' },
+        // The container holding ONLY the input + icon (Fixes the icon floating bug)
+        inputWrapper: { position: 'relative', width: '100%' },
+        icon: { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: colors.secondaryText, pointerEvents: 'none' },
+        input: {
+            width: '100%', padding: '14px 14px 14px 48px', backgroundColor: colors.cardWhite,
+            border: `1px solid ${colors.border}`, borderRadius: '12px', color: colors.mainText,
+            fontSize: '15px', outline: 'none', transition: 'all 0.2s ease', boxSizing: 'border-box'
+        },
+        label: { display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' },
+        btn: {
+            width: '100%', padding: '14px', backgroundColor: colors.primaryBlue, color: '#fff', 
+            border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', 
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
+            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)', transition: '0.2s', marginTop: '15px'
+        }
+    };
 
-                    <button type="submit" style={{ background: '#3b82f6', color: '#fff', padding: '14px', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>
-                        Create Professional Account
+    // =========================================================================
+    // 6. RENDER UI
+    // =========================================================================
+    return (
+        <div style={styles.container}>
+            {/* Soft Background Accent */}
+            <div style={{ position: 'absolute', width: '50vw', height: '50vw', backgroundColor: colors.lightBlue, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.5, top: '-10%', right: '-10%', zIndex: 1 }}></div>
+
+            <div style={styles.card} className="glass-card">
+                
+                {/* Header Section */}
+                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+                    <div style={{ width: '64px', height: '64px', backgroundColor: colors.primaryBlue, borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 16px rgba(37, 99, 235, 0.2)' }}>
+                        <UserPlus size={30} color="#fff" strokeWidth={2.5} />
+                    </div>
+                    <h2 style={{ margin: 0, color: colors.mainText, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.5px' }}>Register Workplace</h2>
+                    <p style={{ margin: '6px 0 0', color: colors.secondaryText, fontSize: '14px' }}>Create your professional account below.</p>
+                </div>
+
+                <form onSubmit={handleSubmit}>
+                    
+                    {/* Username Input */}
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Corporate Username</label>
+                        <div style={styles.inputWrapper}>
+                            <User size={18} style={styles.icon} />
+                            <input 
+                                type="text" name="username" placeholder="Enter username (3-15 chars)"
+                                style={styles.input} onChange={handleInputChange} required 
+                                className="focus-ring" autoComplete="off"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Email Input */}
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Gmail Address</label>
+                        <div style={styles.inputWrapper}>
+                            <Mail size={18} style={styles.icon} />
+                            <input 
+                                type="email" name="email" placeholder="example@gmail.com"
+                                style={styles.input} onChange={handleInputChange} required 
+                                className="focus-ring" autoComplete="off"
+                            />
+                        </div>
+                    </div>
+
+                    {/* Password Input */}
+                    <div style={{ ...styles.inputGroup, marginBottom: '10px' }}>
+                        <label style={styles.label}>Set Password</label>
+                        <div style={styles.inputWrapper}>
+                            <KeyRound size={18} style={styles.icon} />
+                            <input 
+                                type={showPassword ? "text" : "password"} name="password" placeholder="Min 8 characters"
+                                style={{ ...styles.input, paddingRight: '45px' }} onChange={handlePasswordChange} required 
+                                className="focus-ring"
+                            />
+                            <button 
+                                type="button" onClick={() => setShowPassword(!showPassword)}
+                                style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: colors.secondaryText, cursor: 'pointer', padding: '0', display: 'flex' }}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Password Strength Meter Logic */}
+                    {formData.password && (
+                        <div style={{ marginBottom: '20px', padding: '0 4px' }}>
+                            <div style={{ display: 'flex', gap: '4px', height: '4px', marginBottom: '8px' }}>
+                                {[1, 2, 3, 4, 5].map((level) => (
+                                    <div key={level} style={{ 
+                                        flex: 1, borderRadius: '2px', transition: 'all 0.3s ease',
+                                        backgroundColor: level <= passStrength.score ? passStrength.color : colors.border
+                                    }}></div>
+                                ))}
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <p style={{ margin: 0, fontSize: '11px', fontWeight: '700', color: passStrength.color }}>
+                                    {passStrength.label}
+                                </p>
+                                {passStrength.score < 3 && (
+                                    <p style={{ margin: 0, fontSize: '10px', color: colors.danger, display: 'flex', alignItems: 'center', gap: '4px', fontWeight: '600' }}>
+                                        <Info size={12}/> Too Weak
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Role Selection Logic (Pixel Perfect Dropdown) */}
+                    <div style={styles.inputGroup}>
+                        <label style={styles.label}>Select Official Role</label>
+                        <div style={styles.inputWrapper}>
+                            <ShieldCheck size={18} style={styles.icon} />
+                            <select 
+                                name="roleName"
+                                value={formData.roleName}
+                                onChange={handleInputChange}
+                                style={{ ...styles.input, appearance: 'none', cursor: 'pointer', paddingRight: '40px', fontWeight: '600', color: colors.primaryBlue }}
+                                className="focus-ring"
+                            >
+                                <option value="EMPLOYEE">EMPLOYEE</option>
+                                <option value="TL">TEAM LEAD (TL)</option>
+                                <option value="MANAGER">MANAGER</option>
+                                <option value="HR">HR PROFESSIONAL</option>
+                                <option value="ADMIN">SYSTEM ADMIN</option>
+                            </select>
+                            {/* Custom Dropdown Arrow Icon */}
+                            <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: colors.secondaryText, pointerEvents: 'none' }} />
+                        </div>
+                    </div>
+
+                    {/* Submit Registration Button */}
+                    <button type="submit" disabled={isLoading} style={{ ...styles.btn, opacity: isLoading ? 0.7 : 1 }}>
+                        {isLoading ? <Loader2 className="spin" size={20} /> : 'Create Account'} 
+                        {!isLoading && <ArrowRight size={18} />}
                     </button>
-                    <p style={{ textAlign: 'center', fontSize: '14px' }}>
-                        Already have an account? <a href="/login" style={{ color: '#3b82f6', textDecoration: 'none' }}>Login here</a>
-                    </p>
                 </form>
+
+                {/* Footer Section */}
+                <div style={{ textAlign: 'center', marginTop: '28px', borderTop: `1px solid ${colors.border}`, paddingTop: '20px' }}>
+                    <p style={{ margin: 0, fontSize: '14px', color: colors.secondaryText, fontWeight: '500' }}>
+                        Already part of the team? <Link to="/login" style={{ color: colors.primaryBlue, textDecoration: 'none', fontWeight: '700' }} className="hover-text">Sign In Here</Link>
+                    </p>
+                </div>
             </div>
+
+            {/* CSS ANIMATIONS & FOCUS EFFECTS */}
+            <style>
+                {`
+                    /* Smooth Focus Outline */
+                    .focus-ring:focus { 
+                        border-color: ${colors.primaryBlue} !important; 
+                        box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1) !important; 
+                        background-color: #fff !important;
+                    }
+                    /* Custom Input Auto-fill style override */
+                    input:-webkit-autofill {
+                        -webkit-box-shadow: 0 0 0 1000px white inset !important;
+                    }
+                    /* Spinning Loader Animation */
+                    .spin { animation: spin 1s linear infinite; }
+                    @keyframes spin { 100% { transform: rotate(360deg); } }
+                    /* Link Hover Effect */
+                    .hover-text:hover { text-decoration: underline; }
+                    
+                    /* Background subtle floating effect */
+                    @keyframes float {
+                        0% { transform: translateY(0px); }
+                        50% { transform: translateY(-8px); }
+                        100% { transform: translateY(0px); }
+                    }
+                    .glass-card { animation: float 6s ease-in-out infinite; }
+                `}
+            </style>
         </div>
     );
 };

@@ -4,6 +4,8 @@ import StatCard from "../../components/StatCard";
 import { Users, UserPlus } from "lucide-react";
 import api from "../../api/apiConfig";
 
+import toast from "react-hot-toast";
+
 const TLTeam = () => {
   const [team, setTeam] = useState([]);
   const [allEmployees, setAllEmployees] = useState([]);
@@ -19,16 +21,16 @@ const TLTeam = () => {
   }, []);
 
   const handleAdd = async () => {
-    if (!selectedEmp) return alert("Select an employee");
+    if (!selectedEmp) return toast.error("Select an employee");
     setAdding(true);
     try {
       await api.post(`/api/tl/team/add/${selectedEmp}`);
-      alert("Member added successfully");
+      toast.success("Member added successfully");
       setSelectedEmp("");
       loadTeam();
     } catch (err) {
       console.error(err);
-      alert("Failed to add member");
+      toast.error("Failed to add member");
     } finally {
       setAdding(false);
     }
