@@ -38,7 +38,7 @@ const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
             
             // Clear all local storage auth data
             localStorage.clear();
-            toast.success("Logged out successfully! See you soon.", { icon: '👋' });
+            toast.success("Logged out successfully! See you soon.");
             
             // Redirect to login page
             navigate('/login', { replace: true });
@@ -79,16 +79,22 @@ const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
             { name: 'Payroll Review', icon: <FileText size={20}/>, path: '/manager/payroll' },
         ],
         TL: [
-            // Assuming TL specific paths, falling back to TLDashboard as defined in your App.jsx
-            { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
-            { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
-            { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
+            { name: 'Dashboard',    icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
+            { name: 'My Projects',  icon: <Briefcase size={20}/>,       path: '/tl/projects' },
+            { name: 'My Team',      icon: <Users size={20}/>,           path: '/tl/team' },
+            { name: 'Assign Tasks', icon: <Activity size={20}/>,        path: '/tl/tasks' },
+            { name: 'Performance',  icon: <BarChart2 size={20}/>,       path: '/tl/performance' },
+            { name: 'Attendance',   icon: <Clock size={20}/>,           path: '/tl/attendance' },
+            { name: 'Leaves',       icon: <CalendarDays size={20}/>,    path: '/tl/leaves' },
         ],
         TEAM_LEAD: [
-            // Alias for TL
-            { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
-            { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
-            { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
+            { name: 'Dashboard',    icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
+            { name: 'My Projects',  icon: <Briefcase size={20}/>,       path: '/tl/projects' },
+            { name: 'My Team',      icon: <Users size={20}/>,           path: '/tl/team' },
+            { name: 'Assign Tasks', icon: <Activity size={20}/>,        path: '/tl/tasks' },
+            { name: 'Performance',  icon: <BarChart2 size={20}/>,       path: '/tl/performance' },
+            { name: 'Attendance',   icon: <Clock size={20}/>,           path: '/tl/attendance' },
+            { name: 'Leaves',       icon: <CalendarDays size={20}/>,    path: '/tl/leaves' },
         ],
         EMPLOYEE: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },

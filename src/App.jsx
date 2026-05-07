@@ -41,11 +41,15 @@ import ManagerWorkforce from './pages/manager/ManagerWorkforce';
 import ManagerPayroll from './pages/manager/ManagerPayroll';
 
 // ==========================================
-// 5. TL COMPONENTS (Assuming these exist based on your paths)
+// 5. TL COMPONENTS
 // ==========================================
 import TLDashboard from './pages/TLDashboard';
-// Note: If you have specific TLTasks or TLTeam, import them here. 
-// Using TLDashboard as fallback based on your original code.
+import TLProjects from './pages/tl/TLProjects';
+import TLTeam from './pages/tl/TLTeam';
+import TLTasks from './pages/tl/TLTasks';
+import TLPerformance from './pages/tl/TLPerformance';
+import TLAttendance from './pages/tl/TLAttendance';
+import TLLeaves from './pages/tl/TLLeaves';
 
 // ==========================================
 // 6. EMPLOYEE COMPONENTS
@@ -110,7 +114,7 @@ const UnauthorizedPage = () => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-center"  reverseOrder={false} toastOptions={{ duration: 4000 }} />
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 4000 }} />
       
       <Routes>
         {/* PUBLIC ROUTES */}
@@ -153,9 +157,13 @@ function App() {
         {/* ==================================================================== */}
         {/* 🎯 TL ROUTES (Accessible by TL/TEAM_LEAD, MANAGER, and ADMIN)        */}
         {/* ==================================================================== */}
-        <Route path="/tl/dashboard" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
-        <Route path="/tl/tasks" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
-        <Route path="/tl/team" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
+        <Route path="/tl/dashboard"   element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLDashboard /></ProtectedRoute>} />
+        <Route path="/tl/projects"    element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLProjects /></ProtectedRoute>} />
+        <Route path="/tl/team"        element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLTeam /></ProtectedRoute>} />
+        <Route path="/tl/tasks"       element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLTasks /></ProtectedRoute>} />
+        <Route path="/tl/performance" element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLPerformance /></ProtectedRoute>} />
+        <Route path="/tl/attendance"  element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLAttendance /></ProtectedRoute>} />
+        <Route path="/tl/leaves"      element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLLeaves /></ProtectedRoute>} />
 
         {/* ==================================================================== */}
         {/* 💼 EMPLOYEE ROUTES (Base level - Usually restricted to their own ID) */}
@@ -169,7 +177,7 @@ function App() {
         {/* ==================================================================== */}
         {/* ⚠️ 404 FALLBACK ROUTE                                                */}
         {/* ==================================================================== */}
-        <Route path="*" element={<ErrorPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </Router>
   );

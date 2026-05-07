@@ -118,7 +118,7 @@ const EmployeeDashboard = () => {
                 
                 <div style={{ marginBottom: '32px' }}>
                     <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.mainText, margin: '0 0 8px 0' }}>
-                        Welcome to your Workspace 👋
+                        Welcome to your Workspace 
                     </h1>
                     <p style={{ color: colors.secondaryText, fontSize: '15px', margin: 0 }}>
                         Track your daily tasks, log your work hours, and monitor performance.

@@ -237,7 +237,7 @@ if (profileRes.data) {
                             <Activity size={200} />
                         </div>
                         <h1 style={{ fontSize: '28px', fontWeight: '800', margin: '0 0 10px 0', letterSpacing: '-0.5px' }}>
-                            {getGreeting()}, {profile?.fullName?.split(' ')[0] || 'User'}! 👋
+                            {getGreeting()}, {profile?.fullName?.split(' ')[0] || 'User'}! 
                         </h1>
                         <p style={{ margin: 0, fontSize: '15px', color: '#93C5FD', lineHeight: '1.6', maxWidth: '80%' }}>
                             Here is what's happening in your workspace today. Track your modules, log hours, and maintain your elite efficiency score.

@@ -85,7 +85,7 @@ const HRDashboard = () => {
                 {/* Header Section */}
                 <div style={{ marginBottom: '32px' }}>
                     <h1 style={{ fontSize: '24px', fontWeight: '600', color: colors.mainText, margin: '0 0 8px 0' }}>
-                        Good Morning, HR Team! 👋
+                        Good Morning, HR Team! 
                     </h1>
                     <p style={{ color: colors.secondaryText, fontSize: '15px', margin: 0 }}>
                         Here is the overview of the organization's workforce and recruitment status.
