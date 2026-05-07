@@ -110,7 +110,7 @@ const UnauthorizedPage = () => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-right" reverseOrder={false} toastOptions={{ duration: 4000 }} />
+      <Toaster position="top-center"  reverseOrder={false} toastOptions={{ duration: 4000 }} />
       
       <Routes>
         {/* PUBLIC ROUTES */}

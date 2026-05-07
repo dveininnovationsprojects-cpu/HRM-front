@@ -74,10 +74,10 @@ const EmployeePayroll = () => {
     // PDF Download Logic handling BLOB response
     const handleDownloadPayslip = async (id, month, year) => {
         try {
-            setDownloadingId(id); // Show loader for this specific button
+            setDownloadingId(id); 
             
             const response = await api.get(`/api/payroll/download/${id}`, {
-                responseType: 'blob' // CRITICAL: Tells Axios to expect a binary file, not JSON
+                responseType: 'blob'
             });
 
             // Create a URL for the blob
@@ -104,16 +104,15 @@ const EmployeePayroll = () => {
         }
     };
 
-    const getMonthName = (monthValue, yearValue) => {
-    if (!monthValue) return "Pay Period"; // Fallback if data is missing
-    
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    // Using parseInt to safely handle string numbers from JSON
-    const monthIndex = parseInt(monthValue, 10) - 1; 
-    const monthStr = monthNames[monthIndex] || monthValue;
-    
-    return `${monthStr} ${yearValue || ''}`.trim();
-};
+    const getMonthName = (monthValue) => {
+        if (!monthValue) return "Pay Month";
+        
+        const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        // Safety check numerical pattern parsing text values safely
+        const monthIndex = parseInt(monthValue, 10) - 1; 
+        
+        return monthNames[monthIndex] || monthValue;
+    };
 
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', {
@@ -218,19 +217,25 @@ const EmployeePayroll = () => {
                                 ) : payrollHistory.length > 0 ? (
                                     payrollHistory.map((payroll, index) => {
                                         const statusStyle = getStatusStyle(payroll.status);
+                                        
+                                        // Dynamic Fallback check to handle specific backend keys correctly 
+                                        const actualBonus = payroll.performanceBonus || payroll.bonus || 0;
+                                        const actualDeduction = payroll.totalDeduction || payroll.deduction || 0;
+                                        const actualBaseSalary = payroll.baseSalary || (payroll.netSalary - actualBonus + actualDeduction);
+
                                         return (
                                             <tr key={index} style={{ borderBottom: `1px solid ${colors.border}`, transition: '0.2s', backgroundColor: '#fff', ':hover': { backgroundColor: '#f8fafc' } }}>
                                                 <td style={{ padding: '16px', color: colors.mainText, fontWeight: '600', fontSize: '14px' }}>
-                                                    {getMonthName(payroll.month)} {payroll.year}
+                                                    {getMonthName(payroll.payPeriodMonth || payroll.month)} {payroll.payPeriodYear || payroll.year || ''}
                                                 </td>
                                                 <td style={{ padding: '16px', color: colors.secondaryText, fontSize: '14px' }}>
-                                                    {formatCurrency(payroll.basicSalary)}
+                                                    {formatCurrency(actualBaseSalary)} 
                                                 </td>
                                                 <td style={{ padding: '16px', color: colors.success, fontSize: '14px', fontWeight: '500' }}>
-                                                    + {formatCurrency(payroll.bonus)}
+                                                    + {formatCurrency(actualBonus)}
                                                 </td>
                                                 <td style={{ padding: '16px', color: colors.danger, fontSize: '14px', fontWeight: '500' }}>
-                                                    - {formatCurrency(payroll.deduction)}
+                                                    - {formatCurrency(actualDeduction)}
                                                 </td>
                                                 <td style={{ padding: '16px', color: colors.mainText, fontWeight: '700', fontSize: '15px' }}>
                                                     {formatCurrency(payroll.netSalary)}

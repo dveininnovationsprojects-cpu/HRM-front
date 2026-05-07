@@ -44,7 +44,7 @@ const Register = () => {
     // =========================================================================
     // 3. PASSWORD STRENGTH CALCULATION
     // =========================================================================
-    const evaluatePassword = (password) => {
+const evaluatePassword = (password) => {
         let score = 0;
         if (!password) return { score: 0, label: '', color: 'transparent' };
         if (password.length >= 6) score += 1;
@@ -53,9 +53,9 @@ const Register = () => {
         if (/[0-9]/.test(password)) score += 1;
         if (/[^A-Za-z0-9]/.test(password)) score += 1;
 
-        if (score <= 2) return { score, label: 'Weak Security', color: colors.danger }; 
-        if (score === 3 || score === 4) return { score, label: 'Moderate Security', color: colors.warning }; 
-        return { score, label: 'Elite Security (Strong)', color: colors.success }; 
+        if (score <= 2) return { score, label: 'Weak Password', color: '#EF4444' }; 
+        if (score === 3 || score === 4) return { score, label: 'Moderate Password', color: '#F59E0B' }; 
+        return { score, label: 'Strong Password', color: '#10B981' }; 
     };
 
     const handlePasswordChange = (e) => {

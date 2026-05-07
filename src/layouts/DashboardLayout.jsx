@@ -316,10 +316,7 @@ const DashboardLayout = ({ children, role, title }) => {
                                 {userProfile.name.charAt(0).toUpperCase()}
                             </div>
                             
-                            {/* Quick Logout Button */}
-                            <button onClick={handleLogout} title="Logout" style={{ background: 'transparent', border: 'none', marginLeft: '8px', cursor: 'pointer', color: colors.textMuted, transition: '0.2s' }}>
-                                <LogOut size={20} style={{ '&:hover': { color: colors.danger } }} />
-                            </button>
+                         
                         </div>
 
                     </div>

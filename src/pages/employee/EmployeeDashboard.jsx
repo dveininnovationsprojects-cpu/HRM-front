@@ -68,8 +68,15 @@ const EmployeeDashboard = () => {
                 api.get('/api/notifications/unread').catch(() => ({ data: [] }))
             ]);
 
-            // Set Profile
-            if (profileRes.data) setProfile(profileRes.data);
+
+if (profileRes.data) {
+    const rawData = profileRes.data;
+    setProfile({
+        ...rawData,
+        // 👇 Backend nested-ah 'user' object anupuna ithu work aagum
+        email: rawData.user?.email || rawData.email || "N/A"
+    });
+}
 
             // Safe Task Extraction
             let fetchedTasks = [];
@@ -256,9 +263,10 @@ const EmployeeDashboard = () => {
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.secondaryText }}>
                                     <Phone size={14}/> {profile?.phone || 'N/A'}
                                 </span>
-                                <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.secondaryText }}>
-                                    <Mail size={14}/> {profile?.user?.email || 'N/A'}
-                                </span>
+                                {/* EmployeeDashboard.jsx - Around Line 195 */}
+<span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.secondaryText }}>
+    <Mail size={14}/> {profile?.email || 'N/A'}
+</span>
                                 <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: colors.secondaryText }}>
                                     <MapPin size={14}/> {profile?.address || 'N/A'}
                                 </span>
@@ -430,14 +438,7 @@ const EmployeeDashboard = () => {
                                             <span style={{ padding: '4px 10px', background: task.status === 'IN_PROGRESS' ? '#FFFBEB' : colors.lightBlue, color: task.status === 'IN_PROGRESS' ? colors.warning : colors.primaryBlue, borderRadius: '6px', fontSize: '10px', fontWeight: '800', letterSpacing: '0.5px' }}>
                                                 {task.status || "ASSIGNED"}
                                             </span>
-                                            <button 
-                                                onClick={() => handleTaskComplete(task.id)}
-                                                style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '8px 16px', background: '#F0FDF4', color: colors.success, border: `1px solid #BBF7D0`, borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: '700', transition: '0.2s' }}
-                                                onMouseOver={(e) => { e.currentTarget.style.background = colors.success; e.currentTarget.style.color = '#fff'; }}
-                                                onMouseOut={(e) => { e.currentTarget.style.background = '#F0FDF4'; e.currentTarget.style.color = colors.success; }}
-                                            >
-                                                <CheckSquare size={16} /> Complete
-                                            </button>
+
                                         </div>
                                     </div>
                                 );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react'; 
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/apiConfig';
 import toast from 'react-hot-toast';
@@ -11,6 +11,8 @@ import {
 const Sidebar = ({ role }) => {
     const navigate = useNavigate();
     const location = useLocation();
+    // Line around 18-20 kulla
+const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
     // =========================================================================
     // 1. ELITE COLOR PALETTE (Matched with your Dashboard layout)
@@ -189,7 +191,7 @@ const Sidebar = ({ role }) => {
             {/* Logout Section (Fixed at bottom) */}
             <div style={{ padding: '20px', borderTop: `1px solid ${colors.border}`, marginTop: 'auto' }}>
                 <button 
-                    onClick={handleLogout}
+                    onClick={() => setIsLogoutModalOpen(true)}
                     className="logout-btn"
                     style={{ 
                         width: '100%', 
@@ -241,7 +243,39 @@ const Sidebar = ({ role }) => {
                     }
                 `}
             </style>
+            {/* ========================================== */}
+{/* ELITE LOGOUT CONFIRMATION MODAL           */}
+{/* ========================================== */}
+{isLogoutModalOpen && (
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+        <div style={{ background: '#fff', padding: '32px', borderRadius: '20px', width: '90%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', animation: 'scaleIn 0.2s ease' }}>
+            <div style={{ background: colors.dangerLight, color: colors.danger, width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px' }}>
+                <LogOut size={28} />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: '800', color: colors.mainText, margin: '0 0 10px 0' }}>Confirm Logout</h3>
+            <p style={{ fontSize: '14px', color: colors.secondaryText, margin: '0 0 28px 0', lineHeight: '1.5' }}>
+                Are you sure you want to terminate your secure session and logout?
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+                <button 
+                    onClick={() => setIsLogoutModalOpen(false)} 
+                    style={{ flex: 1, padding: '12px', background: colors.lightBlue, color: colors.primaryBlue, border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px' }}
+                >
+                    No, Stay
+                </button>
+                <button 
+                    onClick={handleLogout} 
+                    style={{ flex: 1, padding: '12px', background: colors.danger, color: '#fff', border: 'none', borderRadius: '12px', cursor: 'pointer', fontWeight: '700', fontSize: '14px', boxShadow: '0 4px 12px rgba(239, 68, 68, 0.2)' }}
+                >
+                    Yes, Logout
+                </button>
+            </div>
         </div>
+    </div>
+)}
+            
+        </div>
+        
     );
 };
 
