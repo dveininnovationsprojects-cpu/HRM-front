@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import StatCard from '../../components/StatCard';
-import { DollarSign, FileCheck, AlertCircle, TrendingUp, Download, UploadCloud, RefreshCw, Edit2, X, Save } from 'lucide-react';
+import { DollarSign, FileCheck, AlertCircle, TrendingUp, Download, UploadCloud, RefreshCw, Edit2, X, Save, PlayCircle } from 'lucide-react';
 import api from '../../api/apiConfig';
 import toast from 'react-hot-toast';
 
@@ -27,6 +26,18 @@ const AdminPayroll = () => {
     const [isSavingEdit, setIsSavingEdit] = useState(false);
 
     const fileInputRef = useRef(null);
+
+    // ==========================================
+    // ELITE COLOR PALETTE
+    // ==========================================
+    const colors = {
+        primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
+        mainText: '#0F172A', secondaryText: '#64748B',
+        successBg: '#DCFCE7', successText: '#16A34A',
+        warningBg: '#FFF7ED', warningText: '#EA580C',
+        dangerBg: '#FEE2E2', dangerText: '#DC2626',
+        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
+    };
 
     // 12 Months List
     const monthsList = [
@@ -58,6 +69,17 @@ const AdminPayroll = () => {
     useEffect(() => {
         fetchPayrollData();
     }, [month, year]);
+
+    // ==========================================
+    // 💎 CURRENCY FORMATTER (Indian Standard)
+    // ==========================================
+    const formatCurrency = (amount) => {
+        return new Intl.NumberFormat('en-IN', { 
+            style: 'currency', 
+            currency: 'INR', 
+            maximumFractionDigits: 0 
+        }).format(amount || 0);
+    };
 
     // 2. Generate Payroll (POST /generate)
     const handleGenerate = async () => {
@@ -104,7 +126,6 @@ const AdminPayroll = () => {
 
         const formData = new FormData();
         formData.append('file', file);
-        // Ensure month and year parameters are exactly what the backend expects
         formData.append('month', parseInt(month, 10));
         formData.append('year', parseInt(year, 10));
 
@@ -131,7 +152,7 @@ const AdminPayroll = () => {
         setEditData({
             deduction: payroll.totalDeduction || 0,
             bonus: payroll.performanceBonus || 0,
-            remarks: '' // Reset remarks for new edits
+            remarks: '' 
         });
         setEditModalOpen(true);
     };
@@ -150,7 +171,7 @@ const AdminPayroll = () => {
             await api.put(`/api/payroll/edit/${selectedPayroll.id}?deduction=${editData.deduction}&bonus=${editData.bonus}&remarks=${encodeURIComponent(editData.remarks)}`);
             toast.success("Payroll updated successfully!", { id: toastId });
             setEditModalOpen(false);
-            fetchPayrollData(); // Refresh table to show new net salary
+            fetchPayrollData(); 
         } catch (err) {
             toast.error("Failed to update payroll.", { id: toastId });
         } finally {
@@ -172,180 +193,253 @@ const AdminPayroll = () => {
 
     return (
         <DashboardLayout role="ADMIN" title="Payroll Master Control">
-            {/* Summary Cards */}
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                <StatCard title="Total Payout" value={`₹${totalPayout}`} icon={<DollarSign />} color="#3b82f6" />
-                <StatCard title="Paid Count" value={paidCount} icon={<FileCheck />} color="#10b981" />
-                <StatCard title="Pending" value={generatedCount} icon={<AlertCircle />} color="#f59e0b" />
-                <StatCard title="Deductions" value={`₹${totalDeductions}`} icon={<TrendingUp />} color="#ef4444" />
-            </div>
-
-            <div className="dashboard-card" style={{ background: '#fff', padding: '25px', borderRadius: '16px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)', position: 'relative' }}>
+            {/* 🟢 ALIGNMENT FIX: Elite Background & Padding */}
+            <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
-                {/* Control Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', flexWrap: 'wrap', gap: '15px' }}>
-                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-                        <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer' }}>
-                            {monthsList.map(m => (
-                                <option key={m.value} value={m.value}>{m.label}</option>
-                            ))}
-                        </select>
-                        
-                        <select value={year} onChange={(e) => setYear(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', cursor: 'pointer' }}>
-                            {yearsList.map(y => (
-                                <option key={y} value={y}>{y}</option>
-                            ))}
-                        </select>
-                        
-                        <button onClick={fetchPayrollData} style={{ background: '#f1f5f9', border: 'none', cursor: 'pointer', color: '#64748b', padding: '10px', borderRadius: '8px', display: 'flex', alignItems: 'center' }} title="Refresh">
-                            <RefreshCw size={18} />
-                        </button>
+                {/* PAGE HEADER */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+                    <div>
+                        <h1 style={{ fontSize: '28px', fontWeight: '800', color: colors.mainText, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
+                            Payroll Master Control
+                        </h1>
+                        <p style={{ margin: 0, color: colors.secondaryText, fontSize: '15px' }}>
+                            Generate monthly salaries, review organizational payouts, and export bank data.
+                        </p>
                     </div>
-
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button 
-                            onClick={handleGenerate} 
-                            disabled={isGenerating}
-                            style={{ background: isGenerating ? '#94a3b8' : '#10b981', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', fontWeight: 'bold', cursor: isGenerating ? 'not-allowed' : 'pointer' }}>
-                            {isGenerating ? 'Generating...' : 'Generate Payroll'}
-                        </button>
-
-                        <input type="file" accept=".xlsx, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleBankFileUpload} />
-                        <button 
-                            onClick={() => fileInputRef.current.click()}
-                            disabled={isUploading}
-                            style={{ background: isUploading ? '#94a3b8' : '#3b82f6', color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '8px', cursor: isUploading ? 'not-allowed' : 'pointer', display: 'flex', gap: '8px', alignItems: 'center', fontWeight: 'bold' }}>
-                            <UploadCloud size={18} /> {isUploading ? 'Uploading...' : 'Upload Bank File'}
+                    
+                    {/* Period Selector */}
+                    <div style={{ display: 'flex', gap: '12px', background: colors.cardWhite, padding: '10px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                        <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                            {monthsList.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                        </select>
+                        <div style={{ width: '1px', background: colors.border, height: '20px' }}></div>
+                        <select value={year} onChange={(e) => setYear(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                            {yearsList.map(y => <option key={y} value={y}>{y}</option>)}
+                        </select>
+                        <button onClick={fetchPayrollData} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: colors.primaryBlue, display: 'flex', alignItems: 'center', marginLeft: '8px' }} title="Refresh">
+                            <RefreshCw size={16} />
                         </button>
                     </div>
                 </div>
 
-                {/* Payroll Table */}
-                <div style={{ overflowX: 'auto' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                        <thead>
-                            <tr style={{ textAlign: 'left', borderBottom: '2px solid #f1f5f9', color: '#64748b', fontSize: '13px' }}>
-                                <th style={{ padding: '15px' }}>EMPLOYEE</th>
-                                <th>BIO ID</th>
-                                <th>NET SALARY</th>
-                                <th>BONUS / DEDUCTION</th>
-                                <th>STATUS</th>
-                                <th>ACTIONS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {payrolls.length > 0 ? payrolls.map(p => {
-                                const empName = p.employee?.fullName || 'Unknown';
-                                const bioId = p.employee?.biometricId || '-';
-                                
-                                return (
-                                    <tr key={p.id} style={{ borderBottom: '1px solid #f8fafc', transition: '0.2s', ':hover': { backgroundColor: '#f8fafc' } }}>
-                                        <td style={{ padding: '15px', fontWeight: '600', color: '#1e293b' }}>
-                                            {empName}
-                                            {p.isManuallyEdited && <span style={{display: 'block', fontSize: '10px', color: '#ef4444'}}>*Manually Edited</span>}
-                                        </td>
-                                        <td style={{ color: '#64748b' }}>{bioId}</td>
-                                        <td style={{ fontWeight: 'bold', color: '#0f172a' }}>₹{p.netSalary}</td>
-                                        <td>
-                                            <span style={{ color: '#10b981', marginRight: '10px', fontWeight: '500' }}>+₹{p.performanceBonus || 0}</span>
-                                            <span style={{ color: '#ef4444', fontWeight: '500' }}>-₹{p.totalDeduction || 0}</span>
-                                        </td>
-                                        <td>
-                                            <span style={{ padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: 'bold', background: p.status === 'PAID' ? '#dcfce7' : '#fef3c7', color: p.status === 'PAID' ? '#16a34a' : '#d97706' }}>
-                                                {p.status} 
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {/* NEW: Edit Button (Only visible if not paid yet, or allow always based on logic) */}
-                                                {p.status !== 'PAID' && (
+                {/* ELITE STAT CARDS */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: colors.lightBlue, padding: '16px', borderRadius: '50%', color: colors.primaryBlue }}><DollarSign size={24} /></div>
+                        <div>
+                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Net Payout</p>
+                            {/* 🔥 Format Applied */}
+                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(totalPayout)}</h2>
+                        </div>
+                    </div>
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: colors.successBg, padding: '16px', borderRadius: '50%', color: colors.successText }}><FileCheck size={24} /></div>
+                        <div>
+                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Paid Count</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{paidCount}</h2>
+                        </div>
+                    </div>
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: colors.warningBg, padding: '16px', borderRadius: '50%', color: colors.warningText }}><AlertCircle size={24} /></div>
+                        <div>
+                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Pending</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{generatedCount}</h2>
+                        </div>
+                    </div>
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: colors.dangerBg, padding: '16px', borderRadius: '50%', color: colors.dangerText }}><TrendingUp size={24} /></div>
+                        <div>
+                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Deductions</p>
+                            {/* 🔥 Format Applied */}
+                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(totalDeductions)}</h2>
+                        </div>
+                    </div>
+                </div>
+
+                {/* CONTROLS & TABLE */}
+                <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '15px' }}>
+                        <h3 style={{ margin: 0, color: colors.mainText, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '800' }}>
+                            <FileCheck size={20} color={colors.primaryBlue} /> Master Payroll Register
+                        </h3>
+                        
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            <button 
+                                onClick={handleGenerate} 
+                                disabled={isGenerating}
+                                style={{ background: isGenerating ? '#94A3B8' : colors.successText, color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '12px', fontWeight: '700', cursor: isGenerating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px', transition: '0.2s', boxShadow: isGenerating ? 'none' : '0 4px 14px rgba(22, 163, 74, 0.3)' }}
+                            >
+                                {isGenerating ? <RefreshCw size={18} className="animate-spin" /> : <PlayCircle size={18} />}
+                                {isGenerating ? 'Generating...' : 'Generate Payroll'}
+                            </button>
+
+                            <input type="file" accept=".xlsx, .csv" ref={fileInputRef} style={{ display: 'none' }} onChange={handleBankFileUpload} />
+                            <button 
+                                onClick={() => fileInputRef.current.click()}
+                                disabled={isUploading}
+                                style={{ background: isUploading ? '#94A3B8' : colors.primaryBlue, color: '#fff', padding: '10px 20px', border: 'none', borderRadius: '12px', cursor: isUploading ? 'not-allowed' : 'pointer', display: 'flex', gap: '8px', alignItems: 'center', fontWeight: '700', fontSize: '14px', transition: '0.2s', boxShadow: isUploading ? 'none' : '0 4px 14px rgba(37, 99, 235, 0.3)' }}
+                            >
+                                {isUploading ? <RefreshCw size={18} className="animate-spin" /> : <UploadCloud size={18} />}
+                                {isUploading ? 'Uploading...' : 'Upload Bank File'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style={{ overflowX: 'auto' }}>
+                        <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', minWidth: '900px', textAlign: 'left' }}>
+                            <thead>
+                                <tr>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Employee</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bio ID</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Net Salary</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Bonus / Deduction</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'right' }}>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {payrolls.length > 0 ? payrolls.map(p => {
+                                    const empName = p.employee?.fullName || 'Unknown';
+                                    const bioId = p.employee?.biometricId || '-';
+                                    const actualBonus = p.performanceBonus || 0;
+                                    const actualDeduction = p.totalDeduction || 0;
+                                    
+                                    return (
+                                        <tr key={p.id} style={{ background: colors.inputBg, transition: '0.2s' }}>
+                                            <td style={{ padding: '16px', fontWeight: '700', color: colors.mainText, fontSize: '14px', borderRadius: '12px 0 0 12px' }}>
+                                                {empName}
+                                                {p.isManuallyEdited && <span style={{display: 'block', fontSize: '10px', color: colors.dangerText, marginTop: '4px'}}>*Manually Edited</span>}
+                                            </td>
+                                            <td style={{ padding: '16px', color: colors.secondaryText, fontSize: '14px', fontWeight: '600' }}>
+                                                BIO-{bioId}
+                                            </td>
+                                            <td style={{ padding: '16px', color: colors.mainText, fontWeight: '800', fontSize: '15px' }}>
+                                                {/* 🔥 Format Applied */}
+                                                {formatCurrency(p.netSalary)}
+                                            </td>
+                                            <td style={{ padding: '16px', fontSize: '13px', fontWeight: '700' }}>
+                                                {/* 🔥 Format Applied */}
+                                                <span style={{ color: colors.successText, marginRight: '10px' }}>+{formatCurrency(actualBonus)}</span>
+                                                <span style={{ color: colors.dangerText }}>-{formatCurrency(actualDeduction)}</span>
+                                            </td>
+                                            <td style={{ padding: '16px' }}>
+                                                <span style={{ 
+                                                    padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px',
+                                                    background: p.status === 'PAID' ? colors.successBg : colors.warningBg, 
+                                                    color: p.status === 'PAID' ? colors.successText : colors.warningText 
+                                                }}>
+                                                    {p.status} 
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '16px', textAlign: 'right', borderRadius: '0 12px 12px 0' }}>
+                                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                                    {p.status !== 'PAID' && (
+                                                        <button 
+                                                            onClick={() => openEditModal(p)}
+                                                            style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, color: colors.warningText, cursor: 'pointer', padding: '8px', borderRadius: '8px', transition: '0.2s' }}
+                                                            title="Manual Override (Edit)">
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                    )}
                                                     <button 
-                                                        onClick={() => openEditModal(p)}
-                                                        style={{ background: '#fef3c7', border: 'none', color: '#d97706', cursor: 'pointer', padding: '8px', borderRadius: '6px', transition: '0.2s' }}
-                                                        title="Manual Override (Edit)">
-                                                        <Edit2 size={16} />
+                                                        onClick={() => handleDownloadPayslip(p.id, empName)}
+                                                        style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, color: colors.primaryBlue, cursor: 'pointer', padding: '8px', borderRadius: '8px', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700' }}
+                                                        title="Download Payslip PDF">
+                                                        <Download size={14} /> PDF
                                                     </button>
-                                                )}
-                                                
-                                                <button 
-                                                    onClick={() => handleDownloadPayslip(p.id, empName)}
-                                                    style={{ background: '#eff6ff', border: 'none', color: '#3b82f6', cursor: 'pointer', padding: '8px', borderRadius: '6px', transition: '0.2s' }}
-                                                    title="Download Payslip PDF">
-                                                    <Download size={16} />
-                                                </button>
-                                            </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )
+                                }) : (
+                                    <tr>
+                                        <td colSpan="6" style={{ textAlign: 'center', padding: '60px', color: colors.secondaryText, background: colors.inputBg, borderRadius: '16px' }}>
+                                            <AlertCircle size={48} style={{ opacity: 0.3, margin: '0 auto 16px' }} />
+                                            <p style={{ margin: 0, fontSize: '15px', fontWeight: '600' }}>No payroll records found for {monthsList.find(m => m.value === month)?.label} {year}.</p>
                                         </td>
                                     </tr>
-                                )
-                            }) : (
-                                <tr>
-                                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-                                        <AlertCircle size={40} style={{ opacity: 0.3, marginBottom: '10px' }} />
-                                        <p style={{ margin: 0 }}>No payroll records found for {monthsList.find(m => m.value === month)?.label} {year}.</p>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 {/* OVERLAY MODAL FOR EDITING */}
                 {editModalOpen && selectedPayroll && (
-                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                        <div style={{ background: '#fff', padding: '30px', borderRadius: '16px', width: '400px', position: 'relative', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
-                            <button onClick={() => setEditModalOpen(false)} style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>
-                                <X size={20} />
-                            </button>
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                        <div style={{ background: '#fff', width: '100%', maxWidth: '400px', borderRadius: '24px', overflow: 'hidden', animation: 'slideUp 0.3s ease-out', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                            <div style={{ padding: '24px', background: colors.lightBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h2 style={{ margin: 0, color: colors.mainText, fontSize: '20px', fontWeight: '800' }}>Modify Payout</h2>
+                                    <p style={{ margin: '4px 0 0 0', color: colors.primaryBlue, fontSize: '14px', fontWeight: '600' }}>
+                                        {selectedPayroll.employee?.fullName || `EMP-${selectedPayroll.employee?.id}`}
+                                    </p>
+                                </div>
+                                <button onClick={() => setEditModalOpen(false)} style={{ background: 'rgba(255,255,255,0.5)', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.mainText }}>
+                                    <X size={18} />
+                                </button>
+                            </div>
                             
-                            <h3 style={{ margin: '0 0 20px 0', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Edit2 size={20} color="#3b82f6" /> Edit Payroll
-                            </h3>
-                            <p style={{ color: '#475569', fontSize: '13px', marginBottom: '20px', background: '#f8fafc', padding: '10px', borderRadius: '8px' }}>
-                                Employee: <b>{selectedPayroll.employee?.fullName}</b><br/>
-                                Base Salary: ₹{selectedPayroll.baseSalary}
-                            </p>
-
-                            <form onSubmit={handleSaveEdit}>
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#ef4444', marginBottom: '5px' }}>Manual Deduction (₹)</label>
+                            <div style={{ padding: '24px' }}>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Manual Deduction (₹)</label>
                                     <input 
                                         type="number" 
                                         value={editData.deduction} 
                                         onChange={(e) => setEditData({...editData, deduction: parseFloat(e.target.value) || 0})}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', fontSize: '15px', fontWeight: '600', color: colors.dangerText, boxSizing: 'border-box' }}
                                     />
                                 </div>
-                                <div style={{ marginBottom: '15px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#10b981', marginBottom: '5px' }}>Manual Bonus (₹)</label>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Manual Bonus (₹)</label>
                                     <input 
                                         type="number" 
                                         value={editData.bonus} 
                                         onChange={(e) => setEditData({...editData, bonus: parseFloat(e.target.value) || 0})}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', fontSize: '15px', fontWeight: '600', color: colors.successText, boxSizing: 'border-box' }}
                                     />
                                 </div>
-                                <div style={{ marginBottom: '25px' }}>
-                                    <label style={{ display: 'block', fontSize: '12px', fontWeight: 'bold', color: '#64748b', marginBottom: '5px' }}>Reason / Remarks *</label>
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Reason / Remarks *</label>
                                     <textarea 
                                         required
                                         placeholder="E.g., Added extra performance bonus..."
                                         value={editData.remarks} 
                                         onChange={(e) => setEditData({...editData, remarks: e.target.value})}
-                                        style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', height: '60px', resize: 'none' }}
+                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', height: '80px', resize: 'none', boxSizing: 'border-box', fontWeight: '500' }}
                                     />
                                 </div>
+                                
+                                <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: `1px dashed ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '700', color: colors.secondaryText }}>Calculated Base</span>
+                                    {/* 🔥 Format Applied */}
+                                    <span style={{ fontSize: '16px', fontWeight: '800', color: colors.mainText }}>
+                                        {formatCurrency(selectedPayroll.baseSalary || (selectedPayroll.netSalary - (selectedPayroll.performanceBonus || selectedPayroll.bonus || 0) + (selectedPayroll.totalDeduction || selectedPayroll.deduction || 0)))}
+                                    </span>
+                                </div>
+                            </div>
 
+                            <div style={{ padding: '16px 24px', background: '#F8FAFC', borderTop: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                <button onClick={() => setEditModalOpen(false)} style={{ background: 'transparent', color: colors.secondaryText, border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
                                 <button 
-                                    type="submit" 
+                                    onClick={handleSaveEdit} 
                                     disabled={isSavingEdit}
-                                    style={{ width: '100%', background: isSavingEdit ? '#94a3b8' : '#3b82f6', color: '#fff', padding: '12px', borderRadius: '8px', border: 'none', fontWeight: 'bold', cursor: isSavingEdit ? 'not-allowed' : 'pointer', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
-                                    <Save size={18} /> {isSavingEdit ? 'Saving...' : 'Update & Recalculate'}
+                                    style={{ background: colors.primaryBlue, color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '10px', fontWeight: '700', cursor: isSavingEdit ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
+                                >
+                                    {isSavingEdit ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                                    {isSavingEdit ? 'Updating...' : 'Save Payout'}
                                 </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
                 )}
             </div>
+            <style>{`
+                .animate-spin { animation: spin 1s linear infinite; } 
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            `}</style>
         </DashboardLayout>
     );
 };

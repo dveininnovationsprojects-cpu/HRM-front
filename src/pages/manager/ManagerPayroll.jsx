@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import api from '../../api/apiConfig';
-import { FileText, DollarSign, TrendingDown, Clock, CheckCircle, RefreshCw, Download, PlayCircle, Filter } from 'lucide-react';
+import { 
+    FileText, DollarSign, TrendingDown, Clock, CheckCircle, 
+    RefreshCw, Download, PlayCircle, Filter, Edit2, X, Save 
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ManagerPayroll = () => {
@@ -13,7 +16,7 @@ const ManagerPayroll = () => {
     const [payrolls, setPayrolls] = useState([]);
     const [stats, setStats] = useState({ totalPayout: 0, totalDeductions: 0, paidCount: 0, pendingCount: 0 });
     
-    // Loading States
+    // Loading & Action States
     const [loading, setLoading] = useState(false);
     const [generating, setGenerating] = useState(false);
     const [downloadingId, setDownloadingId] = useState(null);
@@ -21,9 +24,13 @@ const ManagerPayroll = () => {
     // Filter State
     const [statusFilter, setStatusFilter] = useState('ALL');
 
-    // ==========================================
-    // ELITE COLOR PALETTE (Updated for Sync)
-    // ==========================================
+    // 🟢 EDIT MODAL STATES
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingPayroll, setEditingPayroll] = useState(null);
+    const [editForm, setEditForm] = useState({ bonus: 0, deductions: 0 });
+    const [isSaving, setIsSaving] = useState(false);
+
+    // ELITE COLOR PALETTE
     const colors = {
         primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
         mainText: '#0F172A', secondaryText: '#64748B',
@@ -35,7 +42,6 @@ const ManagerPayroll = () => {
 
     const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-    // Initial Load & when Month/Year changes
     useEffect(() => {
         fetchPayrollData();
     }, [month, year, statusFilter]);
@@ -46,7 +52,6 @@ const ManagerPayroll = () => {
     const fetchPayrollData = async () => {
         setLoading(true);
         try {
-            // Fetch Analytics
             const statRes = await api.get(`/api/payroll/analytics?month=${month}&year=${year}`);
             if (statRes.data) {
                 setStats({
@@ -57,7 +62,6 @@ const ManagerPayroll = () => {
                 });
             }
 
-            // Fetch Table Data (With or Without Filter)
             let endpoint = statusFilter === 'ALL' 
                 ? `/api/payroll/view?month=${month}&year=${year}`
                 : `/api/payroll/filter?month=${month}&year=${year}&status=${statusFilter}`;
@@ -66,7 +70,6 @@ const ManagerPayroll = () => {
             setPayrolls(listRes.data || []);
             
         } catch (error) {
-            console.error("Failed to fetch payroll data");
             toast.error("Failed to load payroll records for this month.");
         } finally {
             setLoading(false);
@@ -84,7 +87,7 @@ const ManagerPayroll = () => {
         try {
             await api.post(`/api/payroll/generate?month=${month}&year=${year}`);
             toast.success("Payroll Generated Successfully!", { id: toastId });
-            fetchPayrollData(); // Refresh table and stats
+            fetchPayrollData(); 
         } catch (error) {
             toast.error(error.response?.data || "Failed to generate payroll.", { id: toastId });
         } finally {
@@ -93,7 +96,35 @@ const ManagerPayroll = () => {
     };
 
     // ==========================================
-    // 3. DOWNLOAD PAYSLIP LOGIC
+    // 3. EDIT PAYROLL LOGIC
+    // ==========================================
+    const openEditModal = (payroll) => {
+        setEditingPayroll(payroll);
+        setEditForm({
+            bonus: payroll.performanceBonus || payroll.bonus || 0,
+            deductions: payroll.totalDeduction || payroll.deduction || 0
+        });
+        setIsEditModalOpen(true);
+    };
+
+    const handleSaveEdit = async () => {
+        setIsSaving(true);
+        const toastId = toast.loading("Updating payroll record...");
+        try {
+            // Note: Update this endpoint if your backend uses a different route for updates
+            await api.put(`/api/payroll/update/${editingPayroll.id}`, editForm);
+            toast.success("Payroll updated successfully!", { id: toastId });
+            setIsEditModalOpen(false);
+            fetchPayrollData(); // Refresh data to show new values
+        } catch (error) {
+            toast.error("Failed to update payroll.", { id: toastId });
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // ==========================================
+    // 4. DOWNLOAD PAYSLIP LOGIC
     // ==========================================
     const handleDownloadPayslip = async (id, empName) => {
         setDownloadingId(id);
@@ -120,7 +151,6 @@ const ManagerPayroll = () => {
 
     return (
         <DashboardLayout role="MANAGER" title="Payroll Operations">
-            {/* 🟢 ALIGNMENT FIX: Matched the Elite Padding and Background */}
             <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
                 {/* HEADER & CONTROLS */}
@@ -130,11 +160,10 @@ const ManagerPayroll = () => {
                             Payroll Operations Review
                         </h1>
                         <p style={{ color: colors.secondaryText, fontSize: '15px', margin: 0 }}>
-                            Generate monthly salaries and review company payout analytics.
+                            Generate monthly salaries, review, and edit payouts.
                         </p>
                     </div>
                     
-                    {/* Period Selector (Matched Select Style) */}
                     <div style={{ display: 'flex', gap: '12px', background: colors.cardWhite, padding: '10px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
                         <select value={month} onChange={(e) => setMonth(Number(e.target.value))} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
                             {monthNames.map((m, i) => <option key={i+1} value={i+1}>{m}</option>)}
@@ -146,42 +175,31 @@ const ManagerPayroll = () => {
                     </div>
                 </div>
 
-                {/* TOP STAT CARDS (Updated Border Radius to 20px) */}
+                {/* STAT CARDS */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
                     <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.lightBlue, padding: '16px', borderRadius: '50%', color: colors.primaryBlue }}>
-                            <DollarSign size={24} />
-                        </div>
+                        <div style={{ background: colors.lightBlue, padding: '16px', borderRadius: '50%', color: colors.primaryBlue }}><DollarSign size={24} /></div>
                         <div>
                             <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Net Payout</p>
                             <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(stats.totalPayout)}</h2>
                         </div>
                     </div>
-
                     <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.dangerBg, padding: '16px', borderRadius: '50%', color: colors.dangerText }}>
-                            <TrendingDown size={24} />
-                        </div>
+                        <div style={{ background: colors.dangerBg, padding: '16px', borderRadius: '50%', color: colors.dangerText }}><TrendingDown size={24} /></div>
                         <div>
                             <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Deductions</p>
                             <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(stats.totalDeductions)}</h2>
                         </div>
                     </div>
-
                     <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.successBg, padding: '16px', borderRadius: '50%', color: colors.successText }}>
-                            <CheckCircle size={24} />
-                        </div>
+                        <div style={{ background: colors.successBg, padding: '16px', borderRadius: '50%', color: colors.successText }}><CheckCircle size={24} /></div>
                         <div>
                             <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Paid Employees</p>
                             <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{stats.paidCount}</h2>
                         </div>
                     </div>
-
                     <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.warningBg, padding: '16px', borderRadius: '50%', color: colors.warningText }}>
-                            <Clock size={24} />
-                        </div>
+                        <div style={{ background: colors.warningBg, padding: '16px', borderRadius: '50%', color: colors.warningText }}><Clock size={24} /></div>
                         <div>
                             <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Pending Transfers</p>
                             <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{stats.pendingCount}</h2>
@@ -189,16 +207,13 @@ const ManagerPayroll = () => {
                     </div>
                 </div>
 
-                {/* PAYROLL LIST & GENERATE ACTION (Updated Border Radius to 24px) */}
+                {/* PAYROLL LIST & ACTIONS */}
                 <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '15px' }}>
                         <h3 style={{ margin: 0, color: colors.mainText, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                             <FileText size={20} color={colors.primaryBlue} /> Master Payroll Register
                         </h3>
-                        
                         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                            {/* Filter Dropdown */}
                             <div style={{ display: 'flex', alignItems: 'center', background: colors.inputBg, padding: '8px 16px', borderRadius: '12px', border: `1px solid ${colors.border}` }}>
                                 <Filter size={16} color={colors.secondaryText} style={{ marginRight: '8px' }} />
                                 <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '14px', fontWeight: '700', color: colors.mainText, cursor: 'pointer' }}>
@@ -207,8 +222,6 @@ const ManagerPayroll = () => {
                                     <option value="PAID">Paid</option>
                                 </select>
                             </div>
-                            
-                            {/* Generate Button */}
                             <button 
                                 onClick={handleGeneratePayroll}
                                 disabled={generating}
@@ -230,7 +243,7 @@ const ManagerPayroll = () => {
                                     <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Deductions</th>
                                     <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Net Pay</th>
                                     <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Status</th>
-                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'center' }}>Download</th>
+                                    <th style={{ padding: '0 16px 12px', color: colors.secondaryText, fontWeight: '700', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', textAlign: 'right' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -251,44 +264,41 @@ const ManagerPayroll = () => {
 
                                         return (
                                             <tr key={payroll.id} style={{ background: colors.inputBg, transition: '0.2s' }}>
-                                                <td style={{ padding: '16px', color: colors.mainText, fontWeight: '700', fontSize: '14px', borderRadius: '12px 0 0 12px' }}>
-                                                    {empName}
-                                                </td>
-                                                <td style={{ padding: '16px', color: colors.secondaryText, fontSize: '14px', fontWeight: '600' }}>
-                                                    {formatCurrency(actualBaseSalary)}
-                                                </td>
-                                                <td style={{ padding: '16px', color: colors.successText, fontSize: '14px', fontWeight: '700' }}>
-                                                    + {formatCurrency(actualBonus)}
-                                                </td>
-                                                <td style={{ padding: '16px', color: colors.dangerText, fontSize: '14px', fontWeight: '700' }}>
-                                                    - {formatCurrency(actualDeduction)}
-                                                </td>
-                                                <td style={{ padding: '16px', color: colors.mainText, fontWeight: '800', fontSize: '15px' }}>
-                                                    {formatCurrency(payroll.netSalary)}
-                                                </td>
+                                                <td style={{ padding: '16px', color: colors.mainText, fontWeight: '700', fontSize: '14px', borderRadius: '12px 0 0 12px' }}>{empName}</td>
+                                                <td style={{ padding: '16px', color: colors.secondaryText, fontSize: '14px', fontWeight: '600' }}>{formatCurrency(actualBaseSalary)}</td>
+                                                <td style={{ padding: '16px', color: colors.successText, fontSize: '14px', fontWeight: '700' }}>+ {formatCurrency(actualBonus)}</td>
+                                                <td style={{ padding: '16px', color: colors.dangerText, fontSize: '14px', fontWeight: '700' }}>- {formatCurrency(actualDeduction)}</td>
+                                                <td style={{ padding: '16px', color: colors.mainText, fontWeight: '800', fontSize: '15px' }}>{formatCurrency(payroll.netSalary)}</td>
                                                 <td style={{ padding: '16px' }}>
                                                     <span style={{ 
                                                         background: isPaid ? colors.successBg : colors.lightBlue, 
                                                         color: isPaid ? colors.successText : colors.primaryBlue, 
-                                                        padding: '6px 14px', 
-                                                        borderRadius: '20px', 
-                                                        fontSize: '11px', 
-                                                        fontWeight: '800',
-                                                        letterSpacing: '0.5px'
+                                                        padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px'
                                                     }}>
                                                         {payroll.status || 'GENERATED'}
                                                     </span>
                                                 </td>
-                                                <td style={{ padding: '16px', textAlign: 'center', borderRadius: '0 12px 12px 0' }}>
-                                                    <button 
-                                                        onClick={() => handleDownloadPayslip(payroll.id, empName)}
-                                                        disabled={downloadingId === payroll.id}
-                                                        style={{ background: '#FFFFFF', color: colors.mainText, border: `1px solid ${colors.border}`, padding: '8px 16px', borderRadius: '8px', cursor: downloadingId === payroll.id ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '700', transition: '0.2s' }}
-                                                        onMouseOver={(e) => { if(downloadingId !== payroll.id) e.currentTarget.style.background = '#F8FAFC' }}
-                                                        onMouseOut={(e) => { if(downloadingId !== payroll.id) e.currentTarget.style.background = '#FFFFFF' }}
-                                                    >
-                                                        {downloadingId === payroll.id ? 'Wait...' : <><Download size={14} color={colors.primaryBlue} /> PDF</>}
-                                                    </button>
+                                                <td style={{ padding: '16px', textAlign: 'right', borderRadius: '0 12px 12px 0' }}>
+                                                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                                        {/* EDIT BUTTON */}
+                                                        <button 
+                                                            onClick={() => openEditModal(payroll)}
+                                                            disabled={isPaid} // Cannot edit if already paid
+                                                            style={{ background: isPaid ? '#E2E8F0' : '#FFFFFF', color: isPaid ? '#94A3B8' : colors.warningText, border: `1px solid ${colors.border}`, padding: '8px', borderRadius: '8px', cursor: isPaid ? 'not-allowed' : 'pointer', transition: '0.2s' }}
+                                                            title={isPaid ? "Cannot edit paid salary" : "Edit Payout"}
+                                                        >
+                                                            <Edit2 size={16} />
+                                                        </button>
+                                                        
+                                                        {/* DOWNLOAD BUTTON */}
+                                                        <button 
+                                                            onClick={() => handleDownloadPayslip(payroll.id, empName)}
+                                                            disabled={downloadingId === payroll.id}
+                                                            style={{ background: '#FFFFFF', color: colors.mainText, border: `1px solid ${colors.border}`, padding: '8px 12px', borderRadius: '8px', cursor: downloadingId === payroll.id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700', transition: '0.2s' }}
+                                                        >
+                                                            {downloadingId === payroll.id ? <Loader2 size={14} className="animate-spin"/> : <Download size={14} color={colors.primaryBlue} />}
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         );
@@ -297,7 +307,7 @@ const ManagerPayroll = () => {
                                     <tr>
                                         <td colSpan="7" style={{ textAlign: 'center', padding: '60px', color: colors.secondaryText, background: colors.inputBg, borderRadius: '16px' }}>
                                             <DollarSign size={48} style={{ opacity: 0.3, margin: '0 auto 16px' }} />
-                                            <p style={{ margin: 0, fontSize: '15px', fontWeight: '600' }}>No payroll data found for {monthNames[month-1]} {year}. Click "Generate" to process salaries.</p>
+                                            <p style={{ margin: 0, fontSize: '15px', fontWeight: '600' }}>No payroll data found for {monthNames[month-1]} {year}.</p>
                                         </td>
                                     </tr>
                                 )}
@@ -306,8 +316,72 @@ const ManagerPayroll = () => {
                     </div>
                 </div>
 
+                {/* ========================================== */}
+                {/* EDIT PAYROLL MODAL                         */}
+                {/* ========================================== */}
+                {isEditModalOpen && editingPayroll && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 999 }}>
+                        <div style={{ background: '#fff', width: '100%', maxWidth: '400px', borderRadius: '24px', overflow: 'hidden', animation: 'slideUp 0.3s ease-out', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                            <div style={{ padding: '24px', background: colors.lightBlue, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                <div>
+                                    <h2 style={{ margin: 0, color: colors.mainText, fontSize: '20px', fontWeight: '800' }}>Modify Payout</h2>
+                                    <p style={{ margin: '4px 0 0 0', color: colors.primaryBlue, fontSize: '14px', fontWeight: '600' }}>
+                                        {editingPayroll.employee?.fullName || `EMP-${editingPayroll.employee?.id}`}
+                                    </p>
+                                </div>
+                                <button onClick={() => setIsEditModalOpen(false)} style={{ background: 'rgba(255,255,255,0.5)', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: colors.mainText }}>
+                                    <X size={18} />
+                                </button>
+                            </div>
+                            
+                            <div style={{ padding: '24px' }}>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Performance Bonus (₹)</label>
+                                    <input 
+                                        type="number" 
+                                        value={editForm.bonus} 
+                                        onChange={(e) => setEditForm({...editForm, bonus: Number(e.target.value)})}
+                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', fontSize: '15px', fontWeight: '600', color: colors.successText, boxSizing: 'border-box' }}
+                                    />
+                                </div>
+                                <div style={{ marginBottom: '20px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Total Deductions (₹)</label>
+                                    <input 
+                                        type="number" 
+                                        value={editForm.deductions} 
+                                        onChange={(e) => setEditForm({...editForm, deductions: Number(e.target.value)})}
+                                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', fontSize: '15px', fontWeight: '600', color: colors.dangerText, boxSizing: 'border-box' }}
+                                    />
+                                </div>
+                                <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: `1px dashed ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{ fontSize: '13px', fontWeight: '700', color: colors.secondaryText }}>Calculated Base</span>
+                                    <span style={{ fontSize: '16px', fontWeight: '800', color: colors.mainText }}>
+                                        {formatCurrency(editingPayroll.baseSalary || (editingPayroll.netSalary - (editingPayroll.performanceBonus || editingPayroll.bonus || 0) + (editingPayroll.totalDeduction || editingPayroll.deduction || 0)))}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div style={{ padding: '16px 24px', background: '#F8FAFC', borderTop: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                <button onClick={() => setIsEditModalOpen(false)} style={{ background: 'transparent', color: colors.secondaryText, border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
+                                <button 
+                                    onClick={handleSaveEdit} 
+                                    disabled={isSaving}
+                                    style={{ background: colors.primaryBlue, color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '10px', fontWeight: '700', cursor: isSaving ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
+                                >
+                                    {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                                    {isSaving ? 'Updating...' : 'Save Payout'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
             </div>
-            <style>{`.animate-spin { animation: spin 1s linear infinite; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+            <style>{`
+                .animate-spin { animation: spin 1s linear infinite; } 
+                @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+                @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+            `}</style>
         </DashboardLayout>
     );
 };
