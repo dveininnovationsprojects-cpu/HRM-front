@@ -19,7 +19,7 @@ import AdminPayroll from './pages/admin/AdminPayroll';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminSettings from './pages/admin/AdminSettings';
-import AdminNotifications from './pages/admin/AdminNotifications';
+// import AdminNotifications from './pages/admin/AdminNotifications';
 
 // ==========================================
 // 3. HR COMPONENTS (Navin's additions)
@@ -33,12 +33,14 @@ import HRRecruitment from './pages/hr/HRRecruitment';
 import HRPerformance from './pages/hr/HRPerformance';
 
 // ==========================================
-// 4. MANAGER COMPONENTS
+// 4. MANAGER COMPONENTS (Mass Updates)
 // ==========================================
 import ManagerDashboard from './pages/ManagerDashboard';
 import ManagerProjects from './pages/manager/ManagerProjects';
 import ManagerWorkforce from './pages/manager/ManagerWorkforce';
 import ManagerPayroll from './pages/manager/ManagerPayroll';
+import ManagerLeaves from './pages/manager/ManagerLeaves';       // <--- NEW: Added Leave Approval
+import ManagerAnalytics from './pages/manager/ManagerAnalytics'; // <--- NEW: Added Deep Analytics
 
 // ==========================================
 // 5. TL COMPONENTS
@@ -140,7 +142,7 @@ function App() {
         <Route path="/admin/projects" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminProjects /></ProtectedRoute>} />
         <Route path="/admin/payroll" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminPayroll /></ProtectedRoute>} />
         <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminSettings /></ProtectedRoute>} />
-        <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
+        {/* <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} /> */}
 
         {/* 3. HR ROUTES */}
         <Route path="/hr/dashboard" element={<ProtectedRoute allowedRoles={['HR', 'ADMIN']}><HRDashboard /></ProtectedRoute>} />
@@ -151,11 +153,13 @@ function App() {
         <Route path="/hr/recruitment" element={<ProtectedRoute allowedRoles={['HR', 'ADMIN']}><HRRecruitment /></ProtectedRoute>} />
         <Route path="/hr/performance" element={<ProtectedRoute allowedRoles={['HR', 'ADMIN']}><HRPerformance /></ProtectedRoute>} />
 
-        {/* 4. MANAGER ROUTES */}
+        {/* 4. MANAGER ROUTES (Mass Updates Included) */}
         <Route path="/manager/dashboard" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerDashboard /></ProtectedRoute>} />
         <Route path="/manager/projects" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerProjects /></ProtectedRoute>} /> 
         <Route path="/manager/training" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerWorkforce /></ProtectedRoute>} />
         <Route path="/manager/payroll" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerPayroll /></ProtectedRoute>} />
+        <Route path="/manager/leaves" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerLeaves /></ProtectedRoute>} /> {/* <--- NEW */}
+        <Route path="/manager/analytics" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerAnalytics /></ProtectedRoute>} /> {/* <--- NEW */}
 
         {/* 5. TL ROUTES */}
         <Route path="/tl/dashboard" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />

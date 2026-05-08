@@ -72,7 +72,22 @@ const Login = () => {
     const [isForgotLoading, setIsForgotLoading] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
 
+    // =========================================================================
+    // 3. HELPER FUNCTIONS
+    // =========================================================================
+    const evaluatePassword = (password) => {
+        if (!password) return { score: 0, label: '', color: 'transparent' };
+        
+        let score = 0;
+        if (password.length > 5) score += 2;
+        if (password.length > 8) score += 1;
+        if (/[A-Z]/.test(password)) score += 1;
+        if (/[0-9!@#$%^&*]/.test(password)) score += 1;
 
+        if (score >= 4) return { score: 5, label: 'Strong', color: colors.success };
+        if (score >= 2) return { score: 3, label: 'Medium', color: colors.warning };
+        return { score: 1, label: 'Weak', color: colors.danger };
+    };
 
     const handlePasswordChange = (e, isReset = false) => {
         const val = e.target.value;
@@ -99,7 +114,8 @@ const Login = () => {
             const response = await api.post('/api/auth/login', credentials);
             
             if (response.status === 200) {
-                const { role, username, id } = response.data; 
+                // 🟢 MASS FIX: Added token extraction here! (token, jwt, accessToken)
+                const { role, username, id, token, jwt, accessToken } = response.data; 
                 
                 // THE ADMIN GATE: Prevent access if profile isn't verified
                 if (role !== 'ADMIN' && role !== 'HR') {
@@ -126,7 +142,13 @@ const Login = () => {
                     return;
                 }
 
-                // Store details and redirect
+                // 🟢 MASS FIX: Save the token in localStorage so interceptor can use it!
+                const activeToken = token || jwt || accessToken;
+                if (activeToken) {
+                    localStorage.setItem('token', activeToken);
+                }
+
+                // Store other details
                 localStorage.setItem('role', role);
                 localStorage.setItem('username', username);
                 localStorage.setItem('userId', id);
@@ -236,8 +258,6 @@ const Login = () => {
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
-
-                    
 
                     {/* Forgot Password Link */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>

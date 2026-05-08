@@ -58,8 +58,8 @@ const Sidebar = ({ role }) => {
             { name: 'Attendance', icon: <Clock size={20}/>, path: '/admin/attendance' },
             { name: 'Projects', icon: <Briefcase size={20}/>, path: '/admin/projects' },
             { name: 'Payroll', icon: <DollarSign size={20}/>, path: '/admin/payroll' },
-            { name: 'Settings', icon: <Settings size={20}/>, path: '/admin/settings' },
-            { name: 'Notifications', icon: <Bell size={20}/>, path: '/admin/notifications' },
+            { name: 'Settings', icon: <Settings size={20}/>, path: '/admin/settings' }
+            // Notifications removed successfully!
         ],
         HR: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/hr/dashboard' },
@@ -70,20 +70,20 @@ const Sidebar = ({ role }) => {
             { name: 'Payroll Run', icon: <DollarSign size={20}/>, path: '/hr/payroll' },
             { name: 'Performance', icon: <BarChart2 size={20}/>, path: '/hr/performance' },
         ],
-        MANAGER: [
-            { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/manager/dashboard' },
-            { name: 'Projects', icon: <Briefcase size={20}/>, path: '/manager/projects' },
-            { name: 'Workforce', icon: <Users size={20}/>, path: '/manager/training' },
-            { name: 'Payroll Review', icon: <FileText size={20}/>, path: '/manager/payroll' },
-        ],
+       MANAGER: [
+    { name: 'Executive Dashboard', icon: <LayoutDashboard size={20}/>, path: '/manager/dashboard' },
+    { name: 'Project Architecture', icon: <Briefcase size={20}/>, path: '/manager/projects' },
+    { name: 'Performance Analytics', icon: <BarChart2 size={20}/>, path: '/manager/analytics' },
+    // { name: 'Workforce & Training', icon: <Users size={20}/>, path: '/manager/training' },
+    { name: 'Leave Approvals', icon: <CalendarDays size={20}/>, path: '/manager/leaves' },
+    { name: 'Payroll Operations', icon: <FileText size={20}/>, path: '/manager/payroll' },
+],
         TL: [
-            // Assuming TL specific paths, falling back to TLDashboard as defined in your App.jsx
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
             { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
             { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
         ],
         TEAM_LEAD: [
-            // Alias for TL
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
             { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
             { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
