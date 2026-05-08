@@ -195,19 +195,7 @@ const executeConfirmedAction = async () => {
     return (
         <DashboardLayout role="HR" title="Leave Management">
             <div style={{ backgroundColor: colors.background, minHeight: '100vh', padding: '30px', fontFamily: "'Inter', sans-serif" }}>
-                <Toaster 
-  position="top-center" 
-  toastOptions={{
-    // 3 seconds la automatic-ah poga intha line kandaipa irukanum
-    duration: 3000, 
-    style: {
-      background: '#333',
-      color: '#fff',
-      borderRadius: '10px',
-    },
-  }} 
-/>
-                
+                     <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 }} />           
                 {/* Header Section */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '30px', flexWrap: 'wrap', gap: '15px' }}>
                     <div>

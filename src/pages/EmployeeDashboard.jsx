@@ -37,8 +37,6 @@ const EmployeeDashboard = () => {
                 api.get('/api/attendance/my').catch(() => ({ data: [] })),
                 api.get('/api/notifications/unread').catch(() => ({ data: [] }))
             ]);
-
-            // ULTIMATE SAFE CHECK: Backend data array-va illana, empty array-va mathidum
             let fetchedTasks = [];
             if (taskRes && taskRes.data) {
                 fetchedTasks = Array.isArray(taskRes.data) ? taskRes.data : [taskRes.data];

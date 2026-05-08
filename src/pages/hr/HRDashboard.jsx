@@ -267,18 +267,7 @@ const HRDashboard = () => {
         <DashboardLayout role="HR" title="Command Center">
             <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 {/* Secure Toast Provider */}
-                <Toaster 
-  position="top-center" 
-  toastOptions={{
-    // 3 seconds la automatic-ah poga intha line kandaipa irukanum
-    duration: 3000, 
-    style: {
-      background: '#333',
-      color: '#fff',
-      borderRadius: '10px',
-    },
-  }} 
-/>
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 }} />
                 
                 {/* --------------------------------------------------------- */}
                 {/* 1. TOP HEADER SECTION                                     */}

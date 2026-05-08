@@ -19,7 +19,7 @@ import AdminPayroll from './pages/admin/AdminPayroll';
 import AdminAttendance from './pages/admin/AdminAttendance';
 import AdminProjects from './pages/admin/AdminProjects';
 import AdminSettings from './pages/admin/AdminSettings';
-import AdminNotifications from './pages/admin/AdminNotifications';
+
 
 // ==========================================
 // 3. HR COMPONENTS
@@ -114,7 +114,7 @@ const UnauthorizedPage = () => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 4000 }} />
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 }} />
       
       <Routes>
         {/* PUBLIC ROUTES */}
@@ -133,7 +133,7 @@ function App() {
         <Route path="/admin/projects" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminProjects /></ProtectedRoute>} />
         <Route path="/admin/payroll" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminPayroll /></ProtectedRoute>} />
         <Route path="/admin/settings" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminSettings /></ProtectedRoute>} />
-        <Route path="/admin/notifications" element={<ProtectedRoute allowedRoles={['ADMIN']}><AdminNotifications /></ProtectedRoute>} />
+   
 
         {/* ==================================================================== */}
         {/* 👔 HR ROUTES (Accessible by HR and ADMIN)                            */}
