@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar'; 
 import { 
     Bell, CheckCircle2, CheckSquare, 
-    LogOut, Menu, Inbox, Mail, UserCheck
-} from 'lucide-react';
+    Menu, Inbox, Mail, UserCheck
+} from 'lucide-react'; // Removed LogOut import since we don't need it here anymore
 import api from '../api/apiConfig';
 import toast from 'react-hot-toast';
 
@@ -143,12 +143,6 @@ const DashboardLayout = ({ children, role, title }) => {
         } catch (error) {
             toast.error("Failed to clear notifications.");
         }
-    };
-
-    // 5. Logout
-    const handleLogout = () => {
-        localStorage.clear();
-        navigate('/login');
     };
 
     // -------------------------------------------------------------------------
@@ -317,7 +311,7 @@ const DashboardLayout = ({ children, role, title }) => {
                             )}
                         </div>
 
-                        {/* USER PROFILE INFO & LOGOUT */}
+                        {/* USER PROFILE INFO (Quick Logout Removed) */}
                         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', paddingLeft: '24px', borderLeft: `2px solid ${colors.border}` }}>
                             <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: '2px' }}>
                                 <p style={{ margin: 0, fontSize: '14px', fontWeight: '800', color: colors.textMain, textTransform: 'capitalize' }}>
@@ -335,11 +329,6 @@ const DashboardLayout = ({ children, role, title }) => {
                             }}>
                                 {userProfile.name.charAt(0).toUpperCase()}
                             </div>
-                            
-                            {/* Quick Logout Button */}
-                            <button onClick={handleLogout} title="Logout" style={{ background: 'transparent', border: 'none', marginLeft: '8px', cursor: 'pointer', color: colors.textMuted, transition: '0.2s' }}>
-                                <LogOut size={20} style={{ '&:hover': { color: colors.danger } }} />
-                            </button>
                         </div>
 
                     </div>

@@ -359,9 +359,7 @@ const HRPayroll = () => {
                                                     <button onClick={() => handleDownloadPDF(p.id, p.employee?.fullName || 'Emp')} disabled={downloadingId === p.id} style={{ background: colors.inputBg, border: 'none', color: colors.mainText, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s' }} title="Download Payslip">
                                                         {downloadingId === p.id ? <Loader2 size={16} className="spin"/> : <Download size={16} />}
                                                     </button>
-                                                    <button onClick={() => openEditModal(p)} style={{ background: colors.lightBlue, border: 'none', color: colors.primaryBlue, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s' }} title="Edit Deductions/Bonus">
-                                                        <Edit3 size={16} />
-                                                    </button>
+                                                    
                                                 </div>
                                             </td>
                                         </tr>

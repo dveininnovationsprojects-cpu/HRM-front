@@ -190,12 +190,7 @@ return (
                         </h1>
                         <p style={{ color: colors.secondaryText, fontSize: '15px', margin: 0 }}>Manage assignments, track performance, and log daily hours.</p>
                     </div>
-                    {myProfile && (
-                        <div style={{ background: '#fff', padding: '10px 18px', borderRadius: '30px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 2px 5px rgba(0,0,0,0.02)' }}>
-                            <div style={{ background: colors.primaryBlue, borderRadius: '50%', padding: '6px', color: '#fff' }}><UserCheck size={16}/></div>
-                            <span style={{ fontSize: '14px', fontWeight: '700', color: colors.mainText }}>{myProfile.fullName} <span style={{ color: colors.secondaryText, fontWeight: '500' }}>(ID: {myProfile.id})</span></span>
-                        </div>
-                    )}
+                    
                 </div>
 
                 {/* Metrics Row */}

@@ -133,7 +133,8 @@ const UnauthorizedPage = () => {
 function App() {
   return (
     <Router>
-      <Toaster position="top-right" reverseOrder={false} toastOptions={{ duration: 4000 }} />
+      {/* 🔥 MASS UPDATE: Changed position to top-center */}
+      <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 4000 }} />
       
       <Routes>
         {/* 1. ENTRY & AUTH FLOW (Merged Logic) */}

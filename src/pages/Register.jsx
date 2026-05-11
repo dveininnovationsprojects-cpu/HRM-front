@@ -3,29 +3,29 @@ import { useNavigate, Link } from 'react-router-dom';
 import api from '../api/apiConfig';
 import toast from 'react-hot-toast';
 import { 
-    Eye, EyeOff, Lock, User, ShieldCheck, 
-    AlertCircle, ArrowRight, Mail, KeyRound, 
-    Loader2, UserPlus, CheckCircle2, Info, ChevronDown
+    Eye, EyeOff, User, ShieldCheck, 
+    ArrowRight, Mail, KeyRound, 
+    Loader2, UserPlus, Info, ChevronDown
 } from 'lucide-react';
 
 const Register = () => {
     const navigate = useNavigate();
 
     // =========================================================================
-    // 1. BRAND COLORS (Pure Elite HRM Theme)
+    // 1. BRAND COLORS (Matching Login UI)
     // =========================================================================
     const colors = {
         primaryBlue: '#2563EB',    
         lightBlue: '#EFF6FF',      
         background: '#F8FAFC',     
         cardWhite: '#FFFFFF',      
-        mainText: '#1E293B',       
+        mainText: '#0F172A',       
         secondaryText: '#64748B',  
         success: '#10B981',        
         warning: '#F59E0B',        
         danger: '#EF4444',         
         border: '#E2E8F0',         
-        inputFocus: '#3B82F6'
+        inputBg: '#F1F5F9'
     };
 
     // =========================================================================
@@ -35,7 +35,7 @@ const Register = () => {
         username: '', 
         email: '', 
         password: '', 
-        roleName: 'EMPLOYEE' 
+        roleName: 'EMPLOYEE' // Default role
     });
     const [showPassword, setShowPassword] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -79,8 +79,8 @@ const Register = () => {
             toast.error("Username: 3-15 chars only!"); 
             return;
         }
-        if (!formData.email.endsWith('@gmail.com')) {
-            toast.error("Please use corporate @gmail.com!"); 
+        if (!formData.email.endsWith('@gmail.com') && !formData.email.includes('@')) {
+            toast.error("Please enter a valid email address!"); 
             return;
         }
         if (passStrength.score < 3) {
@@ -99,8 +99,8 @@ const Register = () => {
                 setTimeout(() => navigate('/login'), 3000); 
             }
         } catch (error) {
-            const backendError = error.response?.data?.message || error.response?.data || error.message;
-            toast.error("Request Failed: " + (typeof backendError === 'string' ? backendError : "Conflict detected"));
+            const backendError = error.response?.data?.message || error.response?.data || "Registration failed!";
+            toast.error(typeof backendError === 'string' ? backendError : "Conflict detected");
         } finally {
             setIsLoading(false);
         }
@@ -116,13 +116,10 @@ const Register = () => {
         },
         card: {
             backgroundColor: colors.cardWhite, border: `1px solid ${colors.border}`, borderRadius: '24px', 
-            padding: '40px', width: '100%', maxWidth: '450px', boxShadow: '0 15px 35px -5px rgba(0, 0, 0, 0.05)',
+            padding: '40px', width: '100%', maxWidth: '420px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
             position: 'relative', zIndex: 10
         },
-        // The container holding label + input
-        inputGroup: { marginBottom: '20px' },
-        // The container holding ONLY the input + icon (Fixes the icon floating bug)
-        inputWrapper: { position: 'relative', width: '100%' },
+        inputGroup: { position: 'relative', marginBottom: '20px' },
         icon: { position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: colors.secondaryText, pointerEvents: 'none' },
         input: {
             width: '100%', padding: '14px 14px 14px 48px', backgroundColor: colors.cardWhite,
@@ -132,9 +129,9 @@ const Register = () => {
         label: { display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' },
         btn: {
             width: '100%', padding: '14px', backgroundColor: colors.primaryBlue, color: '#fff', 
-            border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: '700', cursor: 'pointer', 
+            border: 'none', borderRadius: '12px', fontSize: '16px', fontWeight: '600', cursor: 'pointer', 
             display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
-            boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)', transition: '0.2s', marginTop: '15px'
+            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)', transition: '0.2s', marginTop: '10px'
         }
     };
 
@@ -143,17 +140,17 @@ const Register = () => {
     // =========================================================================
     return (
         <div style={styles.container}>
-            {/* Soft Background Accent */}
-            <div style={{ position: 'absolute', width: '50vw', height: '50vw', backgroundColor: colors.lightBlue, borderRadius: '50%', filter: 'blur(100px)', opacity: 0.5, top: '-10%', right: '-10%', zIndex: 1 }}></div>
+            {/* Soft Background Accent (Static, No Animation) */}
+            <div style={{ position: 'absolute', width: '60vw', height: '60vw', backgroundColor: colors.lightBlue, borderRadius: '50%', filter: 'blur(80px)', opacity: 0.5, top: '-20%', left: '-10%', zIndex: 1 }}></div>
 
-            <div style={styles.card} className="glass-card">
+            <div style={styles.card}>
                 
                 {/* Header Section */}
-                <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-                    <div style={{ width: '64px', height: '64px', backgroundColor: colors.primaryBlue, borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 8px 16px rgba(37, 99, 235, 0.2)' }}>
+                <div style={{ textAlign: 'center', marginBottom: '35px' }}>
+                    <div style={{ width: '64px', height: '64px', backgroundColor: colors.primaryBlue, borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px', boxShadow: '0 4px 10px rgba(37, 99, 235, 0.2)' }}>
                         <UserPlus size={30} color="#fff" strokeWidth={2.5} />
                     </div>
-                    <h2 style={{ margin: 0, color: colors.mainText, fontSize: '24px', fontWeight: '800', letterSpacing: '-0.5px' }}>Register Workplace</h2>
+                    <h2 style={{ margin: 0, color: colors.mainText, fontSize: '24px', fontWeight: '700', letterSpacing: '-0.5px' }}>Register Workplace</h2>
                     <p style={{ margin: '6px 0 0', color: colors.secondaryText, fontSize: '14px' }}>Create your professional account below.</p>
                 </div>
 
@@ -161,11 +158,10 @@ const Register = () => {
                     
                     {/* Username Input */}
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Corporate Username</label>
-                        <div style={styles.inputWrapper}>
-                            <User size={18} style={styles.icon} />
+                        <div style={{ position: 'relative' }}>
+                            <User size={20} style={styles.icon} />
                             <input 
-                                type="text" name="username" placeholder="Enter username (3-15 chars)"
+                                type="text" name="username" placeholder="Corporate Username"
                                 style={styles.input} onChange={handleInputChange} required 
                                 className="focus-ring" autoComplete="off"
                             />
@@ -174,11 +170,10 @@ const Register = () => {
 
                     {/* Email Input */}
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Gmail Address</label>
-                        <div style={styles.inputWrapper}>
-                            <Mail size={18} style={styles.icon} />
+                        <div style={{ position: 'relative' }}>
+                            <Mail size={20} style={styles.icon} />
                             <input 
-                                type="email" name="email" placeholder="example@gmail.com"
+                                type="email" name="email" placeholder="Email Address"
                                 style={styles.input} onChange={handleInputChange} required 
                                 className="focus-ring" autoComplete="off"
                             />
@@ -187,11 +182,10 @@ const Register = () => {
 
                     {/* Password Input */}
                     <div style={{ ...styles.inputGroup, marginBottom: '10px' }}>
-                        <label style={styles.label}>Set Password</label>
-                        <div style={styles.inputWrapper}>
-                            <KeyRound size={18} style={styles.icon} />
+                        <div style={{ position: 'relative' }}>
+                            <KeyRound size={20} style={styles.icon} />
                             <input 
-                                type={showPassword ? "text" : "password"} name="password" placeholder="Min 8 characters"
+                                type={showPassword ? "text" : "password"} name="password" placeholder="Create Password"
                                 style={{ ...styles.input, paddingRight: '45px' }} onChange={handlePasswordChange} required 
                                 className="focus-ring"
                             />
@@ -228,26 +222,24 @@ const Register = () => {
                         </div>
                     )}
 
-                    {/* Role Selection Logic (Pixel Perfect Dropdown) */}
+                    {/* Role Selection Logic (ADMIN removed, strictly Employee/TL/Manager/HR) */}
                     <div style={styles.inputGroup}>
-                        <label style={styles.label}>Select Official Role</label>
-                        <div style={styles.inputWrapper}>
-                            <ShieldCheck size={18} style={styles.icon} />
+                        <div style={{ position: 'relative' }}>
+                            <ShieldCheck size={20} style={styles.icon} />
                             <select 
                                 name="roleName"
                                 value={formData.roleName}
                                 onChange={handleInputChange}
-                                style={{ ...styles.input, appearance: 'none', cursor: 'pointer', paddingRight: '40px', fontWeight: '600', color: colors.primaryBlue }}
+                                style={{ ...styles.input, appearance: 'none', cursor: 'pointer', paddingRight: '40px', fontWeight: '600', color: colors.mainText }}
                                 className="focus-ring"
                             >
                                 <option value="EMPLOYEE">EMPLOYEE</option>
                                 <option value="TL">TEAM LEAD (TL)</option>
                                 <option value="MANAGER">MANAGER</option>
                                 <option value="HR">HR PROFESSIONAL</option>
-                                <option value="ADMIN">SYSTEM ADMIN</option>
                             </select>
                             {/* Custom Dropdown Arrow Icon */}
-                            <ChevronDown size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: colors.secondaryText, pointerEvents: 'none' }} />
+                            <ChevronDown size={20} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: colors.secondaryText, pointerEvents: 'none' }} />
                         </div>
                     </div>
 
@@ -284,14 +276,6 @@ const Register = () => {
                     @keyframes spin { 100% { transform: rotate(360deg); } }
                     /* Link Hover Effect */
                     .hover-text:hover { text-decoration: underline; }
-                    
-                    /* Background subtle floating effect */
-                    @keyframes float {
-                        0% { transform: translateY(0px); }
-                        50% { transform: translateY(-8px); }
-                        100% { transform: translateY(0px); }
-                    }
-                    .glass-card { animation: float 6s ease-in-out infinite; }
                 `}
             </style>
         </div>

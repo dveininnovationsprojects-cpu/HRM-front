@@ -60,7 +60,7 @@ const Sidebar = ({ role }) => {
         try {
             await api.post('/api/auth/logout').catch(() => console.log('Backend logout skipped'));
             localStorage.clear();
-            toast.success("Logged out successfully! See you soon.", { icon: '👋' });
+            toast.success("Logged out successfully! See you soon.",);
             navigate('/login', { replace: true });
         } catch (error) {
             console.error("Logout failed", error);

@@ -73,20 +73,20 @@ const Login = () => {
     const [showNewPassword, setShowNewPassword] = useState(false);
 
     // =========================================================================
-    // 3. HELPER FUNCTIONS
+    // 3. PASSWORD STRENGTH LOGIC (Restored for Forgot Password Modal)
     // =========================================================================
-    const evaluatePassword = (password) => {
-        if (!password) return { score: 0, label: '', color: 'transparent' };
-        
+    const evaluatePassword = (pass) => {
         let score = 0;
-        if (password.length > 5) score += 2;
-        if (password.length > 8) score += 1;
-        if (/[A-Z]/.test(password)) score += 1;
-        if (/[0-9!@#$%^&*]/.test(password)) score += 1;
+        if (!pass) return { score: 0, label: '', color: 'transparent' };
+        if (pass.length >= 8) score += 1;
+        if (/[A-Z]/.test(pass)) score += 1;
+        if (/[a-z]/.test(pass)) score += 1;
+        if (/[0-9]/.test(pass)) score += 1;
+        if (/[^A-Za-z0-9]/.test(pass)) score += 1;
 
-        if (score >= 4) return { score: 5, label: 'Strong', color: colors.success };
-        if (score >= 2) return { score: 3, label: 'Medium', color: colors.warning };
-        return { score: 1, label: 'Weak', color: colors.danger };
+        if (score <= 2) return { score, label: 'Weak', color: colors.danger };
+        if (score === 3 || score === 4) return { score, label: 'Good', color: colors.warning };
+        return { score: 5, label: 'Strong', color: colors.success };
     };
 
     const handlePasswordChange = (e, isReset = false) => {
@@ -114,8 +114,7 @@ const Login = () => {
             const response = await api.post('/api/auth/login', credentials);
             
             if (response.status === 200) {
-                // 🟢 MASS FIX: Added token extraction here! (token, jwt, accessToken)
-                const { role, username, id, token, jwt, accessToken } = response.data; 
+                const { role, username, id } = response.data; 
                 
                 // THE ADMIN GATE: Prevent access if profile isn't verified
                 if (role !== 'ADMIN' && role !== 'HR') {
@@ -142,13 +141,7 @@ const Login = () => {
                     return;
                 }
 
-                // 🟢 MASS FIX: Save the token in localStorage so interceptor can use it!
-                const activeToken = token || jwt || accessToken;
-                if (activeToken) {
-                    localStorage.setItem('token', activeToken);
-                }
-
-                // Store other details
+                // Store details and redirect
                 localStorage.setItem('role', role);
                 localStorage.setItem('username', username);
                 localStorage.setItem('userId', id);
@@ -258,6 +251,8 @@ const Login = () => {
                             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                         </button>
                     </div>
+
+                    
 
                     {/* Forgot Password Link */}
                     <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>

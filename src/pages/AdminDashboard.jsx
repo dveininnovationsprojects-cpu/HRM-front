@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../layouts/DashboardLayout';
-import { Users, Activity, Clock, Loader2, TrendingUp, Layers, Shield, KeyRound, X, Save, Eye, EyeOff } from 'lucide-react';
+import { Users, Activity, Clock, Loader2, TrendingUp, Layers, Shield, KeyRound, X, Save, Eye, EyeOff, Calendar } from 'lucide-react';
 import api from '../api/apiConfig';
 import toast from 'react-hot-toast';
 
 const AdminDashboard = () => {
-    // 1. DASHBOARD STATES
+    // 1. DASHBOARD STATES (Logic remains 100% untouched)
     const [summary, setSummary] = useState({
         totalEmployees: 0,
         activeEmployees: 0,
@@ -20,7 +20,7 @@ const AdminDashboard = () => {
     const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '' });
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     
-    // 🔥 NEW: Toggle visibility states
+    // Toggle visibility states
     const [showOldPassword, setShowOldPassword] = useState(false);
     const [showNewPassword, setShowNewPassword] = useState(false);
 
@@ -30,11 +30,15 @@ const AdminDashboard = () => {
     const colors = {
         primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
         mainText: '#0F172A', secondaryText: '#64748B',
-        successBg: '#DCFCE7', successText: '#16A34A',
+        successBg: '#DCFCE7', successText: '#10B981',
         dangerBg: '#FEE2E2', dangerText: '#DC2626',
         warningBg: '#FEF9C3', warningText: '#CA8A04',
-        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
+        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9',
+        darkCard: '#1E293B'
     };
+
+    // Current Date Formatter
+    const currentDate = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
 
     useEffect(() => {
         const fetchDashboardData = async () => {
@@ -103,7 +107,7 @@ const AdminDashboard = () => {
 
     if (loading) {
         return (
-            <DashboardLayout role="ADMIN" title="Admin Dashboard">
+            <DashboardLayout role="ADMIN" title="Executive Command Center">
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
                     <Loader2 className="animate-spin" size={40} color={colors.primaryBlue} />
                 </div>
@@ -113,100 +117,118 @@ const AdminDashboard = () => {
     }
 
     return (
-        <DashboardLayout role="ADMIN" title="Admin Dashboard">
-            <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+        <DashboardLayout role="ADMIN" title="Command Center">
+            <div style={{ padding: '32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
-                {/* PAGE HEADER & QUICK ACTIONS */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                        <h1 style={{ fontSize: '28px', fontWeight: '800', color: colors.mainText, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                            Executive Dashboard
-                        </h1>
-                        <p style={{ margin: 0, color: colors.secondaryText, fontSize: '15px' }}>
-                            High-level overview of workforce performance and system metrics.
+                {/* 🚀 PAGE HEADER (HR Dashboard Style) */}
+                <div style={{ marginBottom: '32px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                        <span style={{ background: colors.primaryBlue, color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            LIVE PORTAL
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: colors.secondaryText, fontSize: '13px', fontWeight: '600' }}>
+                            <Calendar size={14} /> {currentDate}
+                        </span>
+                    </div>
+                    <h1 style={{ fontSize: '32px', fontWeight: '800', color: colors.mainText, margin: '0 0 8px 0', letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        Executive Command Center <span style={{ color: '#F59E0B' }}>⚡</span>
+                    </h1>
+                    <p style={{ margin: 0, color: colors.secondaryText, fontSize: '15px' }}>
+                        Global overview of your workforce matrices and operational pipelines.
+                    </p>
+                </div>
+
+                {/* 🚀 HR STYLE STAT CARDS (4 Cards Grid) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '24px' }}>
+                    
+                    {/* CARD 1: Core Workforce (Solid Blue) */}
+                    <div style={{ background: `linear-gradient(135deg, ${colors.primaryBlue}, #1E3A8A)`, padding: '24px', borderRadius: '20px', color: '#fff', boxShadow: '0 10px 25px rgba(37, 99, 235, 0.2)', position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '1px', opacity: 0.9 }}>CORE WORKFORCE</p>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '8px', borderRadius: '12px' }}>
+                                <Users size={18} color="#fff" />
+                            </div>
+                        </div>
+                        <h2 style={{ margin: '0 0 12px 0', fontSize: '40px', fontWeight: '800' }}>{summary.totalEmployees}</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '600' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><TrendingUp size={14} /> Stabilized Base</span>
+                            <span style={{ opacity: 0.9 }}>100% Active</span>
+                        </div>
+                    </div>
+
+                    {/* CARD 2: Active Employees (White with Green Progress) */}
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '1px', color: colors.secondaryText, textTransform: 'uppercase' }}>Active Presence</p>
+                            <div style={{ background: colors.successBg, padding: '8px', borderRadius: '12px' }}>
+                                <Activity size={18} color={colors.successText} />
+                            </div>
+                        </div>
+                        <h2 style={{ margin: '0 0 12px 0', fontSize: '40px', fontWeight: '800', color: colors.mainText }}>
+                            {summary.activeEmployees} <span style={{ fontSize: '18px', color: colors.secondaryText, fontWeight: '600' }}>/ {summary.totalEmployees}</span>
+                        </h2>
+                        <div style={{ width: '100%', height: '6px', background: colors.inputBg, borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${summary.totalEmployees > 0 ? (summary.activeEmployees/summary.totalEmployees)*100 : 0}%`, height: '100%', background: colors.successText, borderRadius: '4px' }}></div>
+                        </div>
+                    </div>
+
+                    {/* CARD 3: Active Batch (White) */}
+                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '1px', color: colors.secondaryText, textTransform: 'uppercase' }}>Active Batch</p>
+                            <div style={{ background: '#F3E8FF', padding: '8px', borderRadius: '12px' }}>
+                                <Layers size={18} color="#8B5CF6" />
+                            </div>
+                        </div>
+                        <h2 style={{ margin: '0 0 12px 0', fontSize: '28px', fontWeight: '800', color: colors.mainText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {summary.activeBatch}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: '12px', fontWeight: '700', color: '#8B5CF6', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <Clock size={14}/> Current Training Cohort
                         </p>
                     </div>
-                    
+
+                    {/* CARD 4: Performance (Solid Dark) */}
+                    <div style={{ background: colors.darkCard, padding: '24px', borderRadius: '20px', color: '#fff', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.4)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '1px', opacity: 0.7 }}>SYS PERFORMANCE</p>
+                            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '8px', borderRadius: '12px' }}>
+                                <TrendingUp size={18} color="#F59E0B" />
+                            </div>
+                        </div>
+                        <h2 style={{ margin: '0 0 12px 0', fontSize: '40px', fontWeight: '800' }}>{summary.performance}%</h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', fontWeight: '600', color: '#F59E0B' }}>
+                            <span>Efficiency Matrix</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 🚀 HR STYLE SECURITY BUTTON */}
+                <div style={{ marginBottom: '32px' }}>
                     <button 
                         onClick={() => setIsPasswordModalOpen(true)}
                         style={{ 
-                            background: colors.mainText, color: '#fff', border: 'none', padding: '10px 20px', 
-                            borderRadius: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', 
-                            gap: '8px', fontWeight: '700', transition: '0.2s', boxShadow: '0 4px 10px rgba(15, 23, 42, 0.2)'
+                            background: colors.primaryBlue, color: '#fff', border: 'none', padding: '14px 28px', 
+                            borderRadius: '12px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', 
+                            gap: '10px', fontWeight: '700', fontSize: '15px', transition: '0.2s', boxShadow: '0 6px 15px rgba(37, 99, 235, 0.25)'
                         }}
                     >
-                        <Shield size={18} color={colors.successText} /> Security Settings
+                        <Shield size={20} /> Administrator Security Settings
                     </button>
                 </div>
 
-                {/* 1. ELITE STAT CARDS SECTION (Replaced external StatCard for precision layout) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                    
-                    {/* Total Employees */}
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.lightBlue, padding: '12px', borderRadius: '50%', color: colors.primaryBlue, flexShrink: 0 }}>
-                            <Users size={20} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', whiteSpace: 'nowrap' }}>Total Employees</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, wordWrap: 'break-word', lineHeight: '1.2' }}>
-                                {summary.totalEmployees}
-                            </h2>
-                        </div>
-                    </div>
-
-                    {/* Active Employees */}
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#ECFDF5', padding: '12px', borderRadius: '50%', color: '#10B981', flexShrink: 0 }}>
-                            <Activity size={20} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', whiteSpace: 'nowrap' }}>Active Employees</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, wordWrap: 'break-word', lineHeight: '1.2' }}>
-                                {summary.activeEmployees}
-                            </h2>
-                        </div>
-                    </div>
-
-                    {/* System Performance */}
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#F5F3FF', padding: '12px', borderRadius: '50%', color: '#8B5CF6', flexShrink: 0 }}>
-                            <TrendingUp size={20} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', whiteSpace: 'nowrap' }}>Sys Performance</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, wordWrap: 'break-word', lineHeight: '1.2' }}>
-                                {summary.performance}%
-                            </h2>
-                        </div>
-                    </div>
-
-                    {/* Active Batch */}
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '14px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#FFFBEB', padding: '12px', borderRadius: '50%', color: '#F59E0B', flexShrink: 0 }}>
-                            <Layers size={20} />
-                        </div>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', whiteSpace: 'nowrap' }}>Active Batch</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '18px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight: '1.4' }}>
-                                {summary.activeBatch}
-                            </h2>
-                        </div>
-                    </div>
-                </div>
-
-                {/* 2. Main Grid Setup */}
+                {/* 🚀 LOWER GRID SECTION */}
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '32px' }}>
                     
                     {/* Employee Overview Table */}
                     <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: colors.mainText }}>Employee Overview</h3>
+                            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: '800', color: colors.mainText }}>System Audit Trail (Employees)</h3>
                             <button 
                                 onClick={() => window.location.href='/admin/employees'}
-                                style={{ background: colors.lightBlue, color: colors.primaryBlue, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '700', padding: '6px 14px', borderRadius: '8px', transition: '0.2s' }}
+                                style={{ background: colors.lightBlue, color: colors.primaryBlue, border: 'none', cursor: 'pointer', fontSize: '13px', fontWeight: '700', padding: '8px 16px', borderRadius: '8px', transition: '0.2s' }}
                             >
-                                View All
+                                View Database
                             </button>
                         </div>
                         <div style={{ overflowX: 'auto' }}>
@@ -261,8 +283,8 @@ const AdminDashboard = () => {
 
                     {/* Project Status Section */}
                     <div style={{ background: colors.cardWhite, padding: '32px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column' }}>
-                        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '800', color: colors.mainText }}>Project Status</h3>
-                        <p style={{ fontSize: '14px', color: colors.secondaryText, margin: '0 0 24px 0' }}>Admin level tracking hub.</p>
+                        <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '800', color: colors.mainText }}>Project Stream Analysis</h3>
+                        <p style={{ fontSize: '14px', color: colors.secondaryText, margin: '0 0 24px 0' }}>Real-time admin level tracking hub.</p>
                         
                         <div style={{ flex: 1, padding: '40px 20px', textAlign: 'center', border: `2px dashed ${colors.border}`, borderRadius: '16px', background: colors.inputBg, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                              <Activity size={48} color="#cbd5e1" style={{ marginBottom: '16px' }} />
@@ -278,7 +300,7 @@ const AdminDashboard = () => {
                 {isPasswordModalOpen && (
                     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
                         <div style={{ background: '#fff', width: '100%', maxWidth: '400px', borderRadius: '24px', overflow: 'hidden', animation: 'slideUp 0.3s ease-out', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-                            <div style={{ padding: '24px', background: colors.mainText, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <div style={{ padding: '24px', background: colors.darkCard, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                                 <div>
                                     <h2 style={{ margin: 0, color: '#fff', fontSize: '20px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '8px' }}>
                                         <KeyRound size={20} color={colors.successText} /> Admin Security

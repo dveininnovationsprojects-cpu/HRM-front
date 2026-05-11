@@ -109,15 +109,16 @@ const AdminEmployees = () => {
 
         setCreateModal(prev => ({ ...prev, submitting: true }));
         try {
+            // 🔥 MASS UPDATE: Strictly formatting datatypes to prevent 400 Bad Request
             const dtoPayload = {
-                fullName: empForm.fullName,
-                position: empForm.position,
-                department: empForm.department,
-                phone: empForm.phone,
-                address: empForm.address,
-                salary: parseFloat(empForm.salary || 0),
-                biometricId: empForm.biometricId,
-                designationStatus: empForm.designationStatus
+                fullName: String(empForm.fullName).trim(),
+                position: String(empForm.position).trim(),
+                department: String(empForm.department).trim(),
+                phone: String(empForm.phone).trim(),
+                address: String(empForm.address).trim(),
+                salary: Number(empForm.salary || 0), // Forces valid Number type
+                biometricId: String(empForm.biometricId).trim(),
+                designationStatus: empForm.designationStatus || 'PROBATION'
             };
 
             await api.post(`/api/employees/create/${createModal.selectedUserId}`, dtoPayload);
@@ -126,8 +127,19 @@ const AdminEmployees = () => {
             
             loadManagementData();
         } catch (err) {
-            console.error(err);
-            toast.error(err.response?.data?.message || err.response?.data || "Failed to approve registration.");
+            console.error("Payload Error details:", err);
+            // 🔥 MASS UPDATE: Extrating EXACT backend error message to show in toast
+            let errorMsg = "Failed to approve registration.";
+            if (err.response && err.response.data) {
+                if (typeof err.response.data === 'string') {
+                    errorMsg = err.response.data;
+                } else if (err.response.data.message) {
+                    errorMsg = err.response.data.message;
+                } else {
+                    errorMsg = JSON.stringify(err.response.data); // Shows exact mapping error
+                }
+            }
+            toast.error(`Backend Error: ${errorMsg}`, { duration: 6000 });
             setCreateModal(prev => ({ ...prev, submitting: false }));
         }
     };
@@ -156,10 +168,16 @@ const AdminEmployees = () => {
 
         setEditModal(prev => ({ ...prev, submitting: true }));
         try {
-            await api.put(`/api/employees/${editModal.data.id}`, empForm);
+            // Strict payload mapping for update as well
+            const updatePayload = {
+                ...empForm,
+                salary: Number(empForm.salary || 0)
+            };
+
+            await api.put(`/api/employees/${editModal.data.id}`, updatePayload);
             
             if (empForm.salary && String(empForm.salary) !== String(editModal.data.salary)) {
-                await api.put(`/api/employees/${editModal.data.id}/salary`, { salary: parseFloat(empForm.salary) });
+                await api.put(`/api/employees/${editModal.data.id}/salary`, { salary: Number(empForm.salary) });
             }
 
             toast.success("Workplace profile credentials refreshed.");
@@ -304,7 +322,7 @@ const AdminEmployees = () => {
                                         <tr key={emp.id} className="table-row" style={{ borderBottom: `1px solid ${colors.border}`, transition: '0.2s' }}>
                                             <td style={{ padding: '16px 24px' }}>
                                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: colors.lightBlue, color: colors.primaryBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '16px', textTransform: 'uppercase' }}>
+                                                    <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: colors.lightBlue, color: colors.primaryBlue, display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '16px', textTransform: 'uppercase' }}>
                                                         {emp.fullName ? emp.fullName.charAt(0) : '?'}
                                                     </div>
                                                     <div>
@@ -338,7 +356,7 @@ const AdminEmployees = () => {
                                             </td>
 
                                             <td style={{ padding: '16px 24px', textAlign: 'center' }}>
-                                                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                                                <div style={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: '8px' }}>
                                                     <button onClick={() => openEditModal(emp)} style={{ background: colors.inputBg, border: 'none', color: colors.primaryBlue, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s' }} title="Modify Metadata" className="action-btn"><Edit3 size={16}/></button>
                                                     <button onClick={() => openDeleteModal(emp)} style={{ background: colors.dangerLight, border: 'none', color: colors.danger, padding: '8px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s' }} title="Revoke Profile" className="action-btn-danger"><Trash2 size={16}/></button>
                                                 </div>
@@ -348,7 +366,7 @@ const AdminEmployees = () => {
                                 ) : (
                                     <tr>
                                         <td colSpan="6" style={{ padding: '50px', textAlign: 'center' }}>
-                                            <div style={{ background: colors.inputBg, width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}><AlertTriangle size={28} color={colors.secondaryText}/></div>
+                                            <div style={{ background: colors.inputBg, width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', margin: '0 auto 14px' }}><AlertTriangle size={28} color={colors.secondaryText}/></div>
                                             <h4 style={{ margin: '0 0 4px', color: colors.mainText, fontSize: '16px' }}>No Employee Assets Found</h4>
                                             <p style={{ margin: 0, fontSize: '14px', color: colors.secondaryText }}>Search again or check pending requests.</p>
                                         </td>
@@ -531,7 +549,7 @@ const AdminEmployees = () => {
                 {deleteModal.isOpen && (
                     <div className="modal-overlay">
                         <div className="modal-content" style={{ maxWidth: '400px', textAlign: 'center' }}>
-                            <div style={{ background: colors.dangerLight, width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: colors.danger }}><AlertTriangle size={30}/></div>
+                            <div style={{ background: colors.dangerLight, width: '60px', height: '60px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'center', margin: '0 auto 20px', color: colors.danger }}><AlertTriangle size={30}/></div>
                             <h3 style={{ margin: '0 0 10px', fontSize: '20px', fontWeight: '800', color: colors.mainText }}>Revoke Profile?</h3>
                             <p style={{ margin: '0 0 24px', fontSize: '14px', color: colors.secondaryText, lineHeight: '1.5' }}>
                                 You are processing profile deprecation for <b>{deleteModal.name}</b>. This will sever identity record maps from core workspace.
