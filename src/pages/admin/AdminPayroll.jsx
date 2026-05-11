@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
-import { DollarSign, FileCheck, AlertCircle, TrendingUp, Download, UploadCloud, RefreshCw, Edit2, X, Save, PlayCircle } from 'lucide-react';
+import { DollarSign, FileCheck, AlertCircle, TrendingUp, Download, UploadCloud, RefreshCw, Edit2, X, Save, PlayCircle, Calendar } from 'lucide-react';
 import api from '../../api/apiConfig';
 import toast from 'react-hot-toast';
 
@@ -9,6 +9,7 @@ const AdminPayroll = () => {
     const currentDate = new Date();
     const currentMonth = String(currentDate.getMonth() + 1).padStart(2, '0'); 
     const currentYear = String(currentDate.getFullYear());
+    const currentDateStr = currentDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
 
     const [analytics, setAnalytics] = useState({});
     const [payrolls, setPayrolls] = useState([]);
@@ -18,8 +19,6 @@ const AdminPayroll = () => {
     // Loading States
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
-    
-    // MISSING STATE ADDED BACK TO PREVENT CRASH
     const [downloadingId, setDownloadingId] = useState(null);
     
     // EDIT MODAL STATES
@@ -36,13 +35,13 @@ const AdminPayroll = () => {
     const colors = {
         primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
         mainText: '#0F172A', secondaryText: '#64748B',
-        successBg: '#DCFCE7', successText: '#16A34A',
+        successBg: '#DCFCE7', successText: '#10B981',
         warningBg: '#FEF9C3', warningText: '#CA8A04',
         dangerBg: '#FEE2E2', dangerText: '#DC2626',
-        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
+        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9',
+        darkCard: '#1E293B' 
     };
 
-    // 12 Months List
     const monthsList = [
         { value: "01", label: "January" }, { value: "02", label: "February" },
         { value: "03", label: "March" }, { value: "04", label: "April" },
@@ -52,10 +51,8 @@ const AdminPayroll = () => {
         { value: "11", label: "November" }, { value: "12", label: "December" }
     ];
 
-    // Dynamic Years List
     const yearsList = Array.from({ length: 5 }, (_, i) => String(currentDate.getFullYear() - 2 + i));
 
-    // 1. Fetch Analytics & List (GET /analytics, GET /view)
     const fetchPayrollData = async () => {
         try {
             const anaRes = await api.get(`/api/payroll/analytics?month=${month}&year=${year}`);
@@ -73,9 +70,6 @@ const AdminPayroll = () => {
         fetchPayrollData();
     }, [month, year]);
 
-    // ==========================================
-    // 💎 CURRENCY FORMATTER (Indian Standard)
-    // ==========================================
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('en-IN', { 
             style: 'currency', 
@@ -84,7 +78,6 @@ const AdminPayroll = () => {
         }).format(amount || 0);
     };
 
-    // 2. Generate Payroll (POST /generate)
     const handleGenerate = async () => {
         setIsGenerating(true);
         const toastId = toast.loading(`Generating Payroll for ${monthsList.find(m => m.value === month)?.label} ${year}...`);
@@ -99,15 +92,11 @@ const AdminPayroll = () => {
         }
     };
 
-    // 3. Download PDF (GET /download/{id})
     const handleDownloadPayslip = async (id, empName) => {
         setDownloadingId(id);
         const toastId = toast.loading(`Downloading ${empName}'s Payslip...`);
         try {
-            const response = await api.get(`/api/payroll/download/${id}`, {
-                responseType: 'blob' 
-            });
-
+            const response = await api.get(`/api/payroll/download/${id}`, { responseType: 'blob' });
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
@@ -116,7 +105,6 @@ const AdminPayroll = () => {
             document.body.appendChild(link);
             link.click();
             link.parentNode.removeChild(link);
-            
             toast.success("Download Complete! ✅", { id: toastId });
         } catch (error) {
             toast.error("Failed to download PDF.", { id: toastId });
@@ -125,11 +113,9 @@ const AdminPayroll = () => {
         }
     };
 
-    // 4. Upload Bank File (POST /upload-bank)
     const handleBankFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const formData = new FormData();
         formData.append('file', file);
         formData.append('month', parseInt(month, 10));
@@ -138,9 +124,7 @@ const AdminPayroll = () => {
         setIsUploading(true);
         const toastId = toast.loading('Uploading Bank Transfer Status...');
         try {
-            await api.post(`/api/payroll/upload-bank`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
+            await api.post(`/api/payroll/upload-bank`, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
             toast.success("Bank File Uploaded! Salaries marked as PAID 💸", { id: toastId });
             fetchPayrollData(); 
         } catch (err) {
@@ -152,18 +136,12 @@ const AdminPayroll = () => {
         }
     };
 
-    // 5. Open Edit Modal
     const openEditModal = (payroll) => {
         setSelectedPayroll(payroll);
-        setEditData({
-            deduction: payroll.totalDeduction || 0,
-            bonus: payroll.performanceBonus || 0,
-            remarks: '' 
-        });
+        setEditData({ deduction: payroll.totalDeduction || 0, bonus: payroll.performanceBonus || 0, remarks: '' });
         setEditModalOpen(true);
     };
 
-    // 6. Save Edit (PUT /edit/{id})
     const handleSaveEdit = async (e) => {
         e.preventDefault();
         if (!editData.remarks) {
@@ -185,7 +163,6 @@ const AdminPayroll = () => {
         }
     };
 
-    // Mappings for Analytics Cards
     const totalPayout = analytics.totalPayout || 0; 
     const totalDeductions = analytics.totalDeductions || 0;
     const paidCount = analytics.statusBreakdown?.PAID || 0;
@@ -199,93 +176,114 @@ const AdminPayroll = () => {
 
     return (
         <DashboardLayout role="ADMIN" title="Payroll Master Control">
-            <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+            <div style={{ padding: '32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
-                {/* PAGE HEADER */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-                    <div>
-                        <h1 style={{ fontSize: '28px', fontWeight: '800', color: colors.mainText, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                            Payroll Master Control
-                        </h1>
-                        <p style={{ margin: 0, color: colors.secondaryText, fontSize: '15px' }}>
-                            Generate monthly salaries, review organizational payouts, and export bank data.
-                        </p>
+                {/* 🚀 PAGE HEADER */}
+                <div style={{ marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                        <span style={{ background: colors.primaryBlue, color: '#fff', padding: '6px 14px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', textTransform: 'uppercase' }}>
+                            LIVE PORTAL
+                        </span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: colors.secondaryText, fontSize: '13px', fontWeight: '600' }}>
+                            <Calendar size={14} /> {currentDateStr}
+                        </span>
                     </div>
-                    
-                    {/* Period Selector */}
-                    <div style={{ display: 'flex', gap: '12px', background: colors.cardWhite, padding: '10px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
-                        <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
-                            {monthsList.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
-                        </select>
-                        <div style={{ width: '1px', background: colors.border, height: '20px' }}></div>
-                        <select value={year} onChange={(e) => setYear(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
-                            {yearsList.map(y => <option key={y} value={y}>{y}</option>)}
-                        </select>
-                        <button onClick={fetchPayrollData} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: colors.primaryBlue, display: 'flex', alignItems: 'center', marginLeft: '8px' }} title="Refresh">
-                            <RefreshCw size={16} />
-                        </button>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+                        <div>
+                            <h1 style={{ fontSize: '28px', fontWeight: '800', color: colors.mainText, margin: '0 0 6px 0', letterSpacing: '-0.5px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                Payroll Master Control <span style={{ color: '#10B981' }}>💸</span>
+                            </h1>
+                            <p style={{ margin: 0, color: colors.secondaryText, fontSize: '14px' }}>
+                                Generate monthly salaries, review organizational payouts, and export bank data.
+                            </p>
+                        </div>
+                        
+                        <div style={{ display: 'flex', gap: '12px', background: colors.cardWhite, padding: '8px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.03)' }}>
+                            <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                                {monthsList.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
+                            </select>
+                            <div style={{ width: '1px', background: colors.border, height: '20px' }}></div>
+                            <select value={year} onChange={(e) => setYear(e.target.value)} style={{ border: 'none', background: 'transparent', fontWeight: '700', color: colors.mainText, outline: 'none', cursor: 'pointer', fontSize: '14px' }}>
+                                {yearsList.map(y => <option key={y} value={y}>{y}</option>)}
+                            </select>
+                            <button onClick={fetchPayrollData} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: colors.primaryBlue, display: 'flex', alignItems: 'center', marginLeft: '8px' }} title="Refresh">
+                                <RefreshCw size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* 🔥 MASS FIX: ELITE COMPACT STAT CARDS (Strict Single Line) */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+                {/* 🔥 MASS FIX: COMPACT ELITE STAT CARDS */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '24px' }}>
                     
-                    {/* Total Payout */}
-                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.lightBlue, width: '48px', height: '48px', borderRadius: '14px', color: colors.primaryBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <DollarSign size={22} strokeWidth={2.5} />
+                    {/* CARD 1: Total Payout (Solid Blue) */}
+                    <div style={{ background: `linear-gradient(135deg, ${colors.primaryBlue}, #1E3A8A)`, padding: '16px 20px', borderRadius: '16px', color: '#fff', boxShadow: '0 6px 15px rgba(37, 99, 235, 0.15)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', opacity: 0.9 }}>TOTAL NET PAYOUT</p>
+                            <div style={{ background: 'rgba(255,255,255,0.2)', padding: '6px', borderRadius: '8px' }}>
+                                <DollarSign size={16} color="#fff" />
+                            </div>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Total Net Payout</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
-                                {formatCurrency(totalPayout)}
-                            </h2>
-                        </div>
-                    </div>
-
-                    {/* Paid Count */}
-                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#ECFDF5', width: '48px', height: '48px', borderRadius: '14px', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <FileCheck size={22} strokeWidth={2.5} />
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Paid Count</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
-                                {paidCount}
-                            </h2>
+                        <h2 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {formatCurrency(totalPayout)}
+                        </h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: '600' }}>
+                            <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><TrendingUp size={12} /> Disbursed Amount</span>
                         </div>
                     </div>
 
-                    {/* Pending */}
-                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#FFFBEB', width: '48px', height: '48px', borderRadius: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <AlertCircle size={22} strokeWidth={2.5} />
+                    {/* CARD 2: Paid Count (White with Green) */}
+                    <div style={{ background: colors.cardWhite, padding: '16px 20px', borderRadius: '16px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', color: colors.secondaryText, textTransform: 'uppercase' }}>PAID COUNT</p>
+                            <div style={{ background: colors.successBg, padding: '6px', borderRadius: '8px' }}>
+                                <FileCheck size={16} color={colors.successText} />
+                            </div>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Pending</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
-                                {generatedCount}
-                            </h2>
+                        <h2 style={{ margin: '0 0 8px 0', fontSize: '26px', fontWeight: '800', color: colors.mainText }}>
+                            {paidCount}
+                        </h2>
+                        <div style={{ width: '100%', height: '4px', background: colors.inputBg, borderRadius: '4px', overflow: 'hidden' }}>
+                            <div style={{ width: `${(paidCount / (paidCount + generatedCount || 1)) * 100}%`, height: '100%', background: colors.successText, borderRadius: '4px' }}></div>
                         </div>
                     </div>
 
-                    {/* Total Deductions */}
-                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: '#FEF2F2', width: '48px', height: '48px', borderRadius: '14px', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                            <TrendingUp size={22} strokeWidth={2.5} />
+                    {/* CARD 3: Pending (White with Orange) */}
+                    <div style={{ background: colors.cardWhite, padding: '16px 20px', borderRadius: '16px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 10px rgba(0,0,0,0.02)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', color: colors.secondaryText, textTransform: 'uppercase' }}>PENDING</p>
+                            <div style={{ background: '#FFFBEB', padding: '6px', borderRadius: '8px' }}>
+                                <AlertCircle size={16} color="#F59E0B" />
+                            </div>
                         </div>
-                        <div style={{ flex: 1 }}>
-                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Total Deductions</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
-                                {formatCurrency(totalDeductions)}
-                            </h2>
+                        <h2 style={{ margin: '0 0 6px 0', fontSize: '26px', fontWeight: '800', color: colors.mainText }}>
+                            {generatedCount}
+                        </h2>
+                        <p style={{ margin: 0, fontSize: '11px', fontWeight: '700', color: '#F59E0B', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            Awaiting Transfer
+                        </p>
+                    </div>
+
+                    {/* CARD 4: Total Deductions (Solid Dark) */}
+                    <div style={{ background: colors.darkCard, padding: '16px 20px', borderRadius: '16px', color: '#fff', boxShadow: '0 6px 15px rgba(15, 23, 42, 0.2)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                            <p style={{ margin: 0, fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px', opacity: 0.7 }}>TOTAL DEDUCTIONS</p>
+                            <div style={{ background: 'rgba(255,255,255,0.1)', padding: '6px', borderRadius: '8px' }}>
+                                <TrendingUp size={16} color="#EF4444" />
+                            </div>
+                        </div>
+                        <h2 style={{ margin: '0 0 6px 0', fontSize: '24px', fontWeight: '800', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {formatCurrency(totalDeductions)}
+                        </h2>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', fontWeight: '600', color: '#EF4444' }}>
+                            <span>Taxes & Leaves</span>
                         </div>
                     </div>
                 </div>
 
                 {/* CONTROLS & TABLE */}
                 <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                    
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '15px' }}>
                         <h3 style={{ margin: 0, color: colors.mainText, fontSize: '18px', display: 'flex', alignItems: 'center', gap: '10px', fontWeight: '800' }}>
                             <FileCheck size={20} color={colors.primaryBlue} /> Master Payroll Register
@@ -469,4 +467,4 @@ const AdminPayroll = () => {
     );
 };
 
-export default AdminPayroll;
+export default AdminPayroll; // <--- Kadasi line idhudhaan mamey, check pannikko!
