@@ -48,8 +48,6 @@ import TLProjects from './pages/tl/TLProjects';
 import TLTeam from './pages/tl/TLTeam';
 import TLTasks from './pages/tl/TLTasks';
 import TLPerformance from './pages/tl/TLPerformance';
-import TLAttendance from './pages/tl/TLAttendance';
-import TLLeaves from './pages/tl/TLLeaves';
 
 // ==========================================
 // 6. EMPLOYEE COMPONENTS
@@ -162,8 +160,6 @@ function App() {
         <Route path="/tl/team"        element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLTeam /></ProtectedRoute>} />
         <Route path="/tl/tasks"       element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLTasks /></ProtectedRoute>} />
         <Route path="/tl/performance" element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLPerformance /></ProtectedRoute>} />
-        <Route path="/tl/attendance"  element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLAttendance /></ProtectedRoute>} />
-        <Route path="/tl/leaves"      element={<ProtectedRoute allowedRoles={['TL','TEAM_LEAD','MANAGER','ADMIN']}><TLLeaves /></ProtectedRoute>} />
 
         {/* ==================================================================== */}
         {/* 💼 EMPLOYEE ROUTES (Base level - Usually restricted to their own ID) */}

@@ -4,7 +4,6 @@ import api from "../../api/apiConfig";
 
 const TLAttendance = () => {
   const [records, setRecords] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -12,21 +11,8 @@ const TLAttendance = () => {
 
   const loadData = async () => {
     try {
-      const teamRes = await api.get("/api/tl/my-team");
-      const team = teamRes.data || [];
-      setTeamMembers(team);
-      
-      const teamIds = team.map(t => t.biometricId).filter(Boolean);
-      
-      const attRes = await api.get("/api/attendance/all");
-      const allRecords = attRes.data || [];
-      
-      const filtered = allRecords.filter(r => 
-        teamIds.includes(r.biometricId) || 
-        team.some(t => t.id === r.employeeId)
-      );
-      
-      setRecords(filtered);
+      const res = await api.get("/api/tl/team-attendance");
+      setRecords(res.data || []);
     } catch (err) {
       console.error(err);
     }

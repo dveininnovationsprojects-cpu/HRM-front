@@ -4,7 +4,7 @@ import api from "../../api/apiConfig";
 
 const TLLeaves = () => {
   const [leaves, setLeaves] = useState([]);
-  const [teamMembers, setTeamMembers] = useState([]);
+
 
   useEffect(() => {
     loadData();
@@ -12,18 +12,8 @@ const TLLeaves = () => {
 
   const loadData = async () => {
     try {
-      const teamRes = await api.get("/api/tl/my-team");
-      const team = teamRes.data || [];
-      setTeamMembers(team);
-      
-      const teamIds = team.map(t => t.id);
-      
-      const leaveRes = await api.get("/api/leaves/all");
-      const allLeaves = leaveRes.data || [];
-      
-      const filtered = allLeaves.filter(l => teamIds.includes(l.employeeId));
-      
-      setLeaves(filtered);
+      const res = await api.get("/api/tl/team-leaves");
+      setLeaves(res.data || []);
     } catch (err) {
       console.error(err);
     }

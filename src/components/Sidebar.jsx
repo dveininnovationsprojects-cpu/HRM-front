@@ -82,8 +82,6 @@ const Sidebar = ({ role }) => {
             { name: 'My Team',      icon: <Users size={20}/>,           path: '/tl/team' },
             { name: 'Assign Tasks', icon: <Activity size={20}/>,        path: '/tl/tasks' },
             { name: 'Performance',  icon: <BarChart2 size={20}/>,       path: '/tl/performance' },
-            { name: 'Attendance',   icon: <Clock size={20}/>,           path: '/tl/attendance' },
-            { name: 'Leaves',       icon: <CalendarDays size={20}/>,    path: '/tl/leaves' },
         ],
         TEAM_LEAD: [
             { name: 'Dashboard',    icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
@@ -91,8 +89,6 @@ const Sidebar = ({ role }) => {
             { name: 'My Team',      icon: <Users size={20}/>,           path: '/tl/team' },
             { name: 'Assign Tasks', icon: <Activity size={20}/>,        path: '/tl/tasks' },
             { name: 'Performance',  icon: <BarChart2 size={20}/>,       path: '/tl/performance' },
-            { name: 'Attendance',   icon: <Clock size={20}/>,           path: '/tl/attendance' },
-            { name: 'Leaves',       icon: <CalendarDays size={20}/>,    path: '/tl/leaves' },
         ],
         EMPLOYEE: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },
