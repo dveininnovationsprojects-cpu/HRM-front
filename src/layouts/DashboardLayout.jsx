@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from '../components/Sidebar'; // Unga Sidebar component
+import Sidebar from '../components/Sidebar'; 
 import { 
     Bell, CheckCircle2, CheckSquare, 
     LogOut, Menu, Inbox, Mail, UserCheck
@@ -58,9 +58,18 @@ const DashboardLayout = ({ children, role, title }) => {
         };
         document.addEventListener("mousedown", handleClickOutside);
 
+        // Auto-collapse sidebar on smaller screens
+        const handleResize = () => {
+            if (window.innerWidth < 1024) setIsSidebarOpen(false);
+            else setIsSidebarOpen(true);
+        };
+        window.addEventListener('resize', handleResize);
+        handleResize(); // Initial check
+
         return () => {
             clearInterval(interval);
             document.removeEventListener("mousedown", handleClickOutside);
+            window.removeEventListener('resize', handleResize);
         };
     }, []);
 
@@ -159,9 +168,9 @@ const DashboardLayout = ({ children, role, title }) => {
                 overflow: 'hidden',
                 flexShrink: 0,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                zIndex: 20
             }}>
-                {/* Dynamically loads your Sidebar component */}
                 <div style={{ flex: 1, minWidth: '260px' }}>
                     <Sidebar role={userProfile.role} />
                 </div>
@@ -181,7 +190,18 @@ const DashboardLayout = ({ children, role, title }) => {
                     
                     {/* Left Side: Toggle Sidebar & Page Title */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-                       
+                        {/* Menu Toggle Button */}
+                        <button 
+                            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                            style={{ 
+                                background: 'transparent', border: 'none', padding: '8px', borderRadius: '8px', 
+                                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                color: colors.textMuted, transition: '0.2s', backgroundColor: colors.hoverBg
+                            }}
+                        >
+                            <Menu size={22} />
+                        </button>
+                        
                         <h1 style={{ fontSize: '22px', fontWeight: '800', color: colors.textMain, margin: 0, letterSpacing: '-0.5px' }}>
                             {title || "Dashboard"}
                         </h1>
@@ -203,27 +223,27 @@ const DashboardLayout = ({ children, role, title }) => {
                             >
                                 <Bell size={24} color={isNotifOpen ? colors.primary : colors.textMuted} />
                             
-{unreadCount > 0 && (
-    <span style={{ 
-        position: 'absolute', 
-        top: '-2px',        // Munnadi '2px' nu irunthatha '-2px' ku mathunga
-        right: '-2px',      // Munnadi '4px' nu irunthatha '-2px' ku mathunga
-        background: colors.danger, 
-        color: '#fff', 
-        fontSize: '10px', 
-        fontWeight: '800', 
-        width: '18px', 
-        height: '18px', 
-        borderRadius: '50%', 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'center',
-        border: '2px solid #fff', 
-        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
-    }}>
-        {unreadCount > 99 ? '99+' : unreadCount}
-    </span>
-)}
+                                {unreadCount > 0 && (
+                                    <span style={{ 
+                                        position: 'absolute', 
+                                        top: '-2px',        
+                                        right: '-2px',      
+                                        background: colors.danger, 
+                                        color: '#fff', 
+                                        fontSize: '10px', 
+                                        fontWeight: '800', 
+                                        width: '18px', 
+                                        height: '18px', 
+                                        borderRadius: '50%', 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        justifyContent: 'center',
+                                        border: '2px solid #fff', 
+                                        boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)'
+                                    }}>
+                                        {unreadCount > 99 ? '99+' : unreadCount}
+                                    </span>
+                                )}
                             </button>
 
                             {/* DROPDOWN MENU */}

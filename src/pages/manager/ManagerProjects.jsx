@@ -37,7 +37,7 @@ const ManagerProjects = () => {
         successBg: '#DCFCE7', successText: '#16A34A',
         dangerBg: '#FEE2E2', dangerText: '#DC2626',
         warningBg: '#FEF9C3', warningText: '#CA8A04',
-        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F8FAFC'
+        border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
     };
 
     // ==========================================
@@ -157,8 +157,6 @@ const ManagerProjects = () => {
     // ==========================================
     // 6. FILTERING & SEARCH LOGIC
     // ==========================================
-    
-    // 🟢 MASS FIX: Updated Team Lead filter logic based on DTO properties (position instead of role)
     const teamLeads = useMemo(() => {
         if (!employees || employees.length === 0) return [];
         
@@ -187,7 +185,6 @@ const ManagerProjects = () => {
     // ==========================================
     return (
         <DashboardLayout role="MANAGER" title="Project Architecture">
-            {/* 🟢 ALIGNMENT FIX: Added Performance Analytics Padding & Background */}
             <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
                 {/* PAGE HEADER */}
@@ -203,26 +200,49 @@ const ManagerProjects = () => {
                 </div>
 
                 {/* ========================================== */}
-                {/* DEPLOYMENT ZONE (DRAG & DROP)              */}
+                {/* ADVANCED DEPLOYMENT ZONE                   */}
                 {/* ========================================== */}
-                <div style={{ background: colors.cardWhite, padding: '32px', borderRadius: '24px', border: `1px solid ${colors.border}`, marginBottom: '32px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-                        <div style={{ background: colors.lightBlue, padding: '12px', borderRadius: '12px', color: colors.primaryBlue }}>
-                            <UploadCloud size={24} />
+                <div style={{ 
+                    background: colors.cardWhite, padding: '32px', marginBottom: '32px', borderRadius: '24px', 
+                    border: `1px solid ${colors.border}`, boxShadow: '0 10px 30px rgba(0,0,0,0.02)', display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '32px', alignItems: 'center'
+                }}>
+                    {/* Left Side: Information */}
+                    <div>
+                        <div style={{ background: colors.lightBlue, padding: '14px', borderRadius: '14px', display: 'inline-flex', color: colors.primaryBlue, marginBottom: '16px' }}>
+                            <UploadCloud size={28} />
                         </div>
-                        <h3 style={{ margin: 0, fontSize: '20px', color: colors.mainText, fontWeight: '800' }}>Initialize New Architecture</h3>
+                        <h3 style={{ margin: '0 0 12px 0', fontSize: '22px', color: colors.mainText, fontWeight: '800' }}>
+                            Initialize Architecture
+                        </h3>
+                        <p style={{ margin: '0 0 24px 0', fontSize: '15px', color: colors.secondaryText, lineHeight: '1.6', fontWeight: '500' }}>
+                            Securely deploy new project requirements via Excel or CSV. Assign a Lead Architect to initiate module tracking immediately.
+                        </p>
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            <span style={{ fontSize: '12px', background: colors.inputBg, padding: '8px 14px', borderRadius: '20px', fontWeight: '700', color: colors.secondaryText }}>Format: .xlsx, .csv</span>
+                            <span style={{ fontSize: '12px', background: colors.successBg, padding: '8px 14px', borderRadius: '20px', fontWeight: '700', color: colors.successText }}>Auto-Parsing Engine</span>
+                        </div>
                     </div>
 
-                    <form onSubmit={handleProjectUpload} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
-                        
+                    {/* Right Side: Interactive Form */}
+                    <form 
+                        onSubmit={handleProjectUpload} 
+                        onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+                        style={{ 
+                            background: dragActive ? colors.lightBlue : colors.inputBg, 
+                            padding: '24px', borderRadius: '20px', 
+                            border: `2px dashed ${dragActive ? colors.primaryBlue : colors.border}`, 
+                            display: 'flex', flexDirection: 'column', gap: '16px', transition: '0.2s' 
+                        }}
+                    >
                         {/* TL Selection */}
                         <div>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>Assign Lead Architect (TL)</label>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>Assign Lead Architect (TL) *</label>
                             <select 
                                 required 
                                 value={tlBiometricId} 
                                 onChange={(e) => setTlBiometricId(e.target.value)}
-                                style={{ width: '100%', padding: '14px', borderRadius: '12px', border: `1px solid ${colors.border}`, outline: 'none', background: colors.inputBg, fontSize: '15px', color: colors.mainText, cursor: 'pointer', fontWeight: '500' }}
+                                style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', border: `1px solid ${colors.border}`, outline: 'none', background: '#FFFFFF', fontSize: '14px', color: colors.mainText, cursor: 'pointer', fontWeight: '600', boxShadow: '0 2px 4px rgba(0,0,0,0.01)' }}
                             >
                                 <option value="" disabled>-- Select Authorized Team Lead --</option>
                                 {teamLeads.map(tl => (
@@ -230,54 +250,56 @@ const ManagerProjects = () => {
                                 ))}
                             </select>
                             {teamLeads.length === employees.length && employees.length > 0 && (
-                                <p style={{ margin: '6px 0 0', fontSize: '12px', color: colors.warningText, fontWeight: '600' }}>* Showing all employees as no specific TLs were found.</p>
+                                <p style={{ margin: '6px 0 0', fontSize: '11px', color: colors.warningText, fontWeight: '600' }}>* Showing all employees as no specific TLs were found.</p>
                             )}
                         </div>
 
-                        {/* Drag & Drop Zone */}
+                        {/* File Selection Row */}
                         <div>
-                            <label style={{ display: 'block', fontSize: '14px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>Project Requirement File (Excel/CSV)</label>
-                            <div 
-                                onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
-                                style={{ 
-                                    border: `2px dashed ${dragActive ? colors.primaryBlue : colors.border}`, 
-                                    borderRadius: '16px', padding: '40px 20px', textAlign: 'center', 
-                                    background: dragActive ? colors.lightBlue : colors.inputBg,
-                                    transition: 'all 0.2s ease', cursor: 'pointer', position: 'relative'
-                                }}
-                                onClick={() => document.getElementById('project-upload-input').click()}
-                            >
-                                <FileSpreadsheet size={40} color={file ? colors.successText : colors.secondaryText} style={{ marginBottom: '16px' }} />
-                                <h4 style={{ margin: '0 0 8px 0', color: colors.mainText, fontSize: '16px', fontWeight: '700' }}>
-                                    {file ? file.name : "Drag & Drop your Excel file here"}
-                                </h4>
-                                <p style={{ margin: 0, color: colors.secondaryText, fontSize: '13px', fontWeight: '500' }}>
-                                    {file ? `${(file.size / 1024).toFixed(2)} KB` : "or click to browse from your computer"}
-                                </p>
+                            <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>Requirement File *</label>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', background: '#FFFFFF', padding: '8px', borderRadius: '14px', border: `1px solid ${colors.border}`, boxShadow: '0 2px 4px rgba(0,0,0,0.01)' }}>
                                 <input 
                                     id="project-upload-input" type="file" accept=".xlsx, .csv"
-                                    onChange={(e) => setFile(e.target.files[0])}
-                                    style={{ display: 'none' }} 
+                                    onChange={(e) => setFile(e.target.files[0])} style={{ display: 'none' }} 
                                 />
+                                
+                                <label 
+                                    htmlFor="project-upload-input" 
+                                    style={{ background: colors.lightBlue, border: `1px solid ${colors.border}`, padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', color: colors.primaryBlue, display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s', whiteSpace: 'nowrap' }}
+                                >
+                                    <FileSpreadsheet size={16} /> 
+                                    {file ? 'Change File' : 'Choose File'}
+                                </label>
+
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1, overflow: 'hidden' }}>
+                                    <span style={{ fontSize: '13px', color: file ? colors.successText : colors.secondaryText, fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                        {file ? file.name : 'No file selected / Drop here'}
+                                    </span>
+                                    {file && (
+                                        <button type="button" onClick={() => setFile(null)} style={{ background: colors.dangerBg, border: 'none', color: colors.dangerText, cursor: 'pointer', padding: '4px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }} title="Remove file">
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                            <button 
-                                type="submit" 
-                                disabled={isUploading}
-                                style={{ 
-                                    background: isUploading ? colors.secondaryText : colors.primaryBlue, 
-                                    color: '#fff', padding: '14px 32px', border: 'none', borderRadius: '12px', 
-                                    fontWeight: '700', cursor: isUploading ? 'not-allowed' : 'pointer', 
-                                    display: 'flex', gap: '10px', alignItems: 'center', transition: '0.2s',
-                                    fontSize: '15px', boxShadow: isUploading ? 'none' : '0 4px 14px rgba(37,99,235,0.3)' 
-                                }}
-                            >
-                                {isUploading ? <Loader2 size={20} className="spin" /> : <UploadCloud size={20} />}
-                                {isUploading ? 'Deploying Architecture...' : 'Deploy Project'}
-                            </button>
-                        </div>
+                        {/* Submit Button */}
+                        <button 
+                            type="submit" 
+                            disabled={isUploading || !file || !tlBiometricId}
+                            style={{ 
+                                width: '100%', background: (isUploading || !file || !tlBiometricId) ? '#94A3B8' : colors.primaryBlue, color: '#fff', 
+                                padding: '14px 24px', border: 'none', borderRadius: '12px', fontWeight: '800', 
+                                cursor: (isUploading || !file || !tlBiometricId) ? 'not-allowed' : 'pointer', transition: '0.3s', 
+                                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', fontSize: '15px',
+                                boxShadow: (isUploading || !file || !tlBiometricId) ? 'none' : '0 6px 20px rgba(37, 99, 235, 0.3)',
+                                marginTop: '8px'
+                            }}
+                        >
+                            {isUploading ? <Loader2 size={18} className="spin" /> : <UploadCloud size={18} />}
+                            {isUploading ? 'Deploying Architecture...' : 'Deploy Project'}
+                        </button>
                     </form>
                 </div>
 

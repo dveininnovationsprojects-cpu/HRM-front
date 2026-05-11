@@ -19,7 +19,10 @@ const AdminPayroll = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     
-    // EDIT MODAL STATES (MASS FEATURE)
+    // MISSING STATE ADDED BACK TO PREVENT CRASH
+    const [downloadingId, setDownloadingId] = useState(null);
+    
+    // EDIT MODAL STATES
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedPayroll, setSelectedPayroll] = useState(null);
     const [editData, setEditData] = useState({ deduction: 0, bonus: 0, remarks: '' });
@@ -34,7 +37,7 @@ const AdminPayroll = () => {
         primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
         mainText: '#0F172A', secondaryText: '#64748B',
         successBg: '#DCFCE7', successText: '#16A34A',
-        warningBg: '#FFF7ED', warningText: '#EA580C',
+        warningBg: '#FEF9C3', warningText: '#CA8A04',
         dangerBg: '#FEE2E2', dangerText: '#DC2626',
         border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
     };
@@ -84,10 +87,10 @@ const AdminPayroll = () => {
     // 2. Generate Payroll (POST /generate)
     const handleGenerate = async () => {
         setIsGenerating(true);
-        const toastId = toast.loading(`Generating Payroll for ${monthsList.find(m => m.value === month).label} ${year}...`);
+        const toastId = toast.loading(`Generating Payroll for ${monthsList.find(m => m.value === month)?.label} ${year}...`);
         try {
             await api.post(`/api/payroll/generate?month=${month}&year=${year}`);
-            toast.success("Payroll generated successfully mamey! 🎉", { id: toastId });
+            toast.success("Payroll generated successfully! ", { id: toastId });
             fetchPayrollData(); 
         } catch (err) { 
             toast.error("Generation failed! Check backend logs.", { id: toastId });
@@ -98,6 +101,7 @@ const AdminPayroll = () => {
 
     // 3. Download PDF (GET /download/{id})
     const handleDownloadPayslip = async (id, empName) => {
+        setDownloadingId(id);
         const toastId = toast.loading(`Downloading ${empName}'s Payslip...`);
         try {
             const response = await api.get(`/api/payroll/download/${id}`, {
@@ -116,6 +120,8 @@ const AdminPayroll = () => {
             toast.success("Download Complete! ✅", { id: toastId });
         } catch (error) {
             toast.error("Failed to download PDF.", { id: toastId });
+        } finally {
+            setDownloadingId(null);
         }
     };
 
@@ -193,7 +199,6 @@ const AdminPayroll = () => {
 
     return (
         <DashboardLayout role="ADMIN" title="Payroll Master Control">
-            {/* 🟢 ALIGNMENT FIX: Elite Background & Padding */}
             <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
                 
                 {/* PAGE HEADER */}
@@ -222,36 +227,58 @@ const AdminPayroll = () => {
                     </div>
                 </div>
 
-                {/* ELITE STAT CARDS */}
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.lightBlue, padding: '16px', borderRadius: '50%', color: colors.primaryBlue }}><DollarSign size={24} /></div>
-                        <div>
-                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Net Payout</p>
-                            {/* 🔥 Format Applied */}
-                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(totalPayout)}</h2>
+                {/* 🔥 MASS FIX: ELITE COMPACT STAT CARDS (Strict Single Line) */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+                    
+                    {/* Total Payout */}
+                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: colors.lightBlue, width: '48px', height: '48px', borderRadius: '14px', color: colors.primaryBlue, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <DollarSign size={22} strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Total Net Payout</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
+                                {formatCurrency(totalPayout)}
+                            </h2>
                         </div>
                     </div>
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.successBg, padding: '16px', borderRadius: '50%', color: colors.successText }}><FileCheck size={24} /></div>
-                        <div>
-                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Paid Count</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{paidCount}</h2>
+
+                    {/* Paid Count */}
+                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: '#ECFDF5', width: '48px', height: '48px', borderRadius: '14px', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <FileCheck size={22} strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Paid Count</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
+                                {paidCount}
+                            </h2>
                         </div>
                     </div>
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.warningBg, padding: '16px', borderRadius: '50%', color: colors.warningText }}><AlertCircle size={24} /></div>
-                        <div>
-                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Pending</p>
-                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{generatedCount}</h2>
+
+                    {/* Pending */}
+                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: '#FFFBEB', width: '48px', height: '48px', borderRadius: '14px', color: '#F59E0B', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <AlertCircle size={22} strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Pending</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
+                                {generatedCount}
+                            </h2>
                         </div>
                     </div>
-                    <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)' }}>
-                        <div style={{ background: colors.dangerBg, padding: '16px', borderRadius: '50%', color: colors.dangerText }}><TrendingUp size={24} /></div>
-                        <div>
-                            <p style={{ color: colors.secondaryText, fontSize: '13px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0' }}>Total Deductions</p>
-                            {/* 🔥 Format Applied */}
-                            <h2 style={{ color: colors.mainText, fontSize: '26px', fontWeight: '800', margin: 0 }}>{formatCurrency(totalDeductions)}</h2>
+
+                    {/* Total Deductions */}
+                    <div style={{ background: colors.cardWhite, padding: '20px 24px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', alignItems: 'center', gap: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                        <div style={{ background: '#FEF2F2', width: '48px', height: '48px', borderRadius: '14px', color: '#EF4444', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <TrendingUp size={22} strokeWidth={2.5} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                            <p style={{ color: colors.secondaryText, fontSize: '12px', fontWeight: '700', textTransform: 'uppercase', margin: '0 0 4px 0', letterSpacing: '0.5px' }}>Total Deductions</p>
+                            <h2 style={{ color: colors.mainText, fontSize: '22px', fontWeight: '800', margin: 0, whiteSpace: 'nowrap', letterSpacing: '-0.5px' }}>
+                                {formatCurrency(totalDeductions)}
+                            </h2>
                         </div>
                     </div>
                 </div>
@@ -315,11 +342,9 @@ const AdminPayroll = () => {
                                                 BIO-{bioId}
                                             </td>
                                             <td style={{ padding: '16px', color: colors.mainText, fontWeight: '800', fontSize: '15px' }}>
-                                                {/* 🔥 Format Applied */}
                                                 {formatCurrency(p.netSalary)}
                                             </td>
                                             <td style={{ padding: '16px', fontSize: '13px', fontWeight: '700' }}>
-                                                {/* 🔥 Format Applied */}
                                                 <span style={{ color: colors.successText, marginRight: '10px' }}>+{formatCurrency(actualBonus)}</span>
                                                 <span style={{ color: colors.dangerText }}>-{formatCurrency(actualDeduction)}</span>
                                             </td>
@@ -344,9 +369,10 @@ const AdminPayroll = () => {
                                                     )}
                                                     <button 
                                                         onClick={() => handleDownloadPayslip(p.id, empName)}
-                                                        style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, color: colors.primaryBlue, cursor: 'pointer', padding: '8px', borderRadius: '8px', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700' }}
+                                                        disabled={downloadingId === p.id}
+                                                        style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, color: colors.primaryBlue, cursor: downloadingId === p.id ? 'not-allowed' : 'pointer', padding: '8px', borderRadius: '8px', transition: '0.2s', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', fontWeight: '700' }}
                                                         title="Download Payslip PDF">
-                                                        <Download size={14} /> PDF
+                                                        {downloadingId === p.id ? <RefreshCw size={14} className="animate-spin"/> : <Download size={14} />} PDF
                                                     </button>
                                                 </div>
                                             </td>
@@ -381,7 +407,7 @@ const AdminPayroll = () => {
                                 </button>
                             </div>
                             
-                            <div style={{ padding: '24px' }}>
+                            <form onSubmit={handleSaveEdit} style={{ padding: '24px' }}>
                                 <div style={{ marginBottom: '20px' }}>
                                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.secondaryText, marginBottom: '8px', textTransform: 'uppercase' }}>Manual Deduction (₹)</label>
                                     <input 
@@ -413,24 +439,23 @@ const AdminPayroll = () => {
                                 
                                 <div style={{ background: '#F8FAFC', padding: '16px', borderRadius: '12px', border: `1px dashed ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                     <span style={{ fontSize: '13px', fontWeight: '700', color: colors.secondaryText }}>Calculated Base</span>
-                                    {/* 🔥 Format Applied */}
                                     <span style={{ fontSize: '16px', fontWeight: '800', color: colors.mainText }}>
                                         {formatCurrency(selectedPayroll.baseSalary || (selectedPayroll.netSalary - (selectedPayroll.performanceBonus || selectedPayroll.bonus || 0) + (selectedPayroll.totalDeduction || selectedPayroll.deduction || 0)))}
                                     </span>
                                 </div>
-                            </div>
 
-                            <div style={{ padding: '16px 24px', background: '#F8FAFC', borderTop: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
-                                <button onClick={() => setEditModalOpen(false)} style={{ background: 'transparent', color: colors.secondaryText, border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
-                                <button 
-                                    onClick={handleSaveEdit} 
-                                    disabled={isSavingEdit}
-                                    style={{ background: colors.primaryBlue, color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '10px', fontWeight: '700', cursor: isSavingEdit ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
-                                >
-                                    {isSavingEdit ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
-                                    {isSavingEdit ? 'Updating...' : 'Save Payout'}
-                                </button>
-                            </div>
+                                <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+                                    <button type="button" onClick={() => setEditModalOpen(false)} style={{ background: 'transparent', color: colors.secondaryText, border: 'none', padding: '10px 20px', borderRadius: '10px', fontWeight: '700', cursor: 'pointer' }}>Cancel</button>
+                                    <button 
+                                        type="submit" 
+                                        disabled={isSavingEdit}
+                                        style={{ background: colors.primaryBlue, color: '#fff', border: 'none', padding: '10px 24px', borderRadius: '10px', fontWeight: '700', cursor: isSavingEdit ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}
+                                    >
+                                        {isSavingEdit ? <RefreshCw size={16} className="animate-spin" /> : <Save size={16} />}
+                                        {isSavingEdit ? 'Updating...' : 'Save Payout'}
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 )}

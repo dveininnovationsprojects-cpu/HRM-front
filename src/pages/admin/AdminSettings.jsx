@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { 
     Settings, Building2, Calculator, Clock, UploadCloud, 
     Save, Image as ImageIcon, Briefcase, PlusCircle, Trash2, 
-    UserCheck, Shield, KeyRound, Loader2, XCircle
+    UserCheck, Shield, KeyRound, Loader2, XCircle, Eye, EyeOff
 } from 'lucide-react';
 
 const AdminSettings = () => {
@@ -26,7 +26,14 @@ const AdminSettings = () => {
     const [shifts, setShifts] = useState([]);
     const [shiftForm, setShiftForm] = useState({ name: '', startTime: '', endTime: '', lateThreshold: '' });
     const [assignForm, setAssignForm] = useState({ employeeId: '', shiftId: '' });
+    
+    // Security States
     const [passwordForm, setPasswordForm] = useState({ oldPassword: '', newPassword: '' });
+    const [isChangingPassword, setIsChangingPassword] = useState(false);
+    
+    // 🔥 NEW: Toggle visibility states
+    const [showOldPassword, setShowOldPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
 
     // Elite Theme Palette
     const colors = {
@@ -148,7 +155,6 @@ const AdminSettings = () => {
 
         const toastId = toast.loading('Creating Shift...');
         try {
-            // Assuming endpoint exists based on your provided component
             await api.post('/api/shifts', shiftForm);
             toast.success("New Shift Created!", { id: toastId });
             setShiftForm({ name: '', startTime: '', endTime: '', lateThreshold: '' });
@@ -166,7 +172,6 @@ const AdminSettings = () => {
 
         const toastId = toast.loading('Assigning Shift...');
         try {
-            // Assuming endpoint exists based on your provided component
             await api.put(`/api/shifts/assign?employeeId=${assignForm.employeeId}&shiftId=${assignForm.shiftId}`);
             toast.success("Shift Assigned to Employee!", { id: toastId });
             setAssignForm({ employeeId: '', shiftId: '' });
@@ -179,14 +184,21 @@ const AdminSettings = () => {
         e.preventDefault();
         if(passwordForm.newPassword.length < 6) return toast.error("Password too weak.");
         
+        setIsChangingPassword(true);
         const toastId = toast.loading("Updating credentials...");
         try {
             // Connected to PUT /api/settings/change-password
             await api.put('/api/settings/change-password', passwordForm);
             toast.success("Admin Password changed securely!", { id: toastId });
+            
+            // Reset fields & visibility states
             setPasswordForm({ oldPassword: '', newPassword: '' });
+            setShowOldPassword(false);
+            setShowNewPassword(false);
         } catch (error) {
             toast.error(error.response?.data || "Failed to update password", { id: toastId });
+        } finally {
+            setIsChangingPassword(false);
         }
     };
 
@@ -212,7 +224,7 @@ const AdminSettings = () => {
                         { id: 'BRANDING', label: 'Company Identity', icon: <Building2 size={16}/> },
                         { id: 'PAYROLL', label: 'Payroll & Leave Rules', icon: <Calculator size={16}/> },
                         { id: 'SHIFTS', label: 'Shift Management', icon: <Clock size={16}/> },
-                        { id: 'SECURITY', label: 'Security & Access', icon: <Shield size={16}/> } // 🟢 ADDED SECURITY TAB
+                        { id: 'SECURITY', label: 'Security & Access', icon: <Shield size={16}/> }
                     ].map(tab => (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                             style={{
@@ -413,17 +425,56 @@ const AdminSettings = () => {
                                 <KeyRound size={20} color={colors.primaryBlue}/> Security Credentials
                             </h3>
                             <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                
+                                {/* 🔥 Toggle logic for Current Password */}
                                 <div>
                                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>Current Password</label>
-                                    <input type="password" required value={passwordForm.oldPassword} onChange={(e)=>setPasswordForm({...passwordForm, oldPassword: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', boxSizing: 'border-box', fontWeight: '600' }} />
+                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                        <input 
+                                            type={showOldPassword ? "text" : "password"} 
+                                            required 
+                                            value={passwordForm.oldPassword} 
+                                            onChange={(e)=>setPasswordForm({...passwordForm, oldPassword: e.target.value})} 
+                                            style={{ width: '100%', padding: '14px', paddingRight: '45px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', boxSizing: 'border-box', fontWeight: '600' }} 
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowOldPassword(!showOldPassword)}
+                                            style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: colors.secondaryText, display: 'flex', padding: 0 }}
+                                        >
+                                            {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                 </div>
+                                
+                                {/* 🔥 Toggle logic for New Password */}
                                 <div>
                                     <label style={{ display: 'block', fontSize: '13px', fontWeight: '700', color: colors.mainText, marginBottom: '8px' }}>New Secured Password</label>
-                                    <input type="password" required minLength="6" value={passwordForm.newPassword} onChange={(e)=>setPasswordForm({...passwordForm, newPassword: e.target.value})} style={{ width: '100%', padding: '14px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', boxSizing: 'border-box', fontWeight: '600' }} />
+                                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                                        <input 
+                                            type={showNewPassword ? "text" : "password"} 
+                                            required minLength="6" 
+                                            value={passwordForm.newPassword} 
+                                            onChange={(e)=>setPasswordForm({...passwordForm, newPassword: e.target.value})} 
+                                            style={{ width: '100%', padding: '14px', paddingRight: '45px', borderRadius: '12px', border: `1px solid ${colors.border}`, background: colors.inputBg, outline: 'none', boxSizing: 'border-box', fontWeight: '600' }} 
+                                        />
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setShowNewPassword(!showNewPassword)}
+                                            style={{ position: 'absolute', right: '12px', background: 'none', border: 'none', cursor: 'pointer', color: colors.secondaryText, display: 'flex', padding: 0 }}
+                                        >
+                                            {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
                                     <p style={{ margin: '6px 0 0', fontSize: '11px', color: colors.secondaryText }}>Must be at least 6 characters.</p>
                                 </div>
-                                <button type="submit" style={{ background: colors.primaryBlue, color: '#fff', padding: '14px', borderRadius: '12px', fontWeight: '800', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px', fontSize: '15px' }}>
-                                    <Shield size={18}/> Update System Access
+
+                                <button 
+                                    type="submit" disabled={isChangingPassword}
+                                    style={{ background: isChangingPassword ? colors.secondaryText : colors.primaryBlue, color: '#fff', padding: '14px', borderRadius: '12px', fontWeight: '800', border: 'none', cursor: isChangingPassword ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginTop: '10px', fontSize: '15px' }}
+                                >
+                                    {isChangingPassword ? <Loader2 size={18} className="spin" /> : <Shield size={18}/>}
+                                    {isChangingPassword ? 'Securing Account...' : 'Update System Access'}
                                 </button>
                             </form>
                         </div>

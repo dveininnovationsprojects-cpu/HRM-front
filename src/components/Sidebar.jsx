@@ -1,19 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/apiConfig';
 import toast from 'react-hot-toast';
 import { 
     LayoutDashboard, Users, FileText, Clock, 
     Briefcase, DollarSign, Settings, Bell, LogOut,
-    ShieldCheck, Activity, BarChart2, CalendarDays
+    ShieldCheck, Activity, BarChart2, CalendarDays,
+    TrendingUp, BookOpen, CheckSquare
 } from 'lucide-react';
 
 const Sidebar = ({ role }) => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    // 🔥 NEW: State for Dynamic Branding
+    const [brandConfig, setBrandConfig] = useState({
+        companyName: 'HRM Soft',
+        companyLogo: null
+    });
+
     // =========================================================================
-    // 1. ELITE COLOR PALETTE (Matched with your Dashboard layout)
+    // 1. ELITE COLOR PALETTE
     // =========================================================================
     const colors = {
         primaryBlue: '#2563EB',
@@ -27,18 +34,33 @@ const Sidebar = ({ role }) => {
     };
 
     // =========================================================================
-    // 2. LOGOUT LOGIC
+    // 🔥 2. FETCH DYNAMIC BRANDING LOGIC
+    // =========================================================================
+    useEffect(() => {
+        const fetchBranding = async () => {
+            try {
+                const res = await api.get('/api/settings');
+                if (res.data) {
+                    setBrandConfig({
+                        companyName: res.data.companyName || 'HRM Soft',
+                        companyLogo: res.data.companyLogo || null
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to load dynamic branding", error);
+            }
+        };
+        fetchBranding();
+    }, []);
+
+    // =========================================================================
+    // 3. LOGOUT LOGIC
     // =========================================================================
     const handleLogout = async () => {
         try {
-            // Optional: Hit backend logout API if you have one
             await api.post('/api/auth/logout').catch(() => console.log('Backend logout skipped'));
-            
-            // Clear all local storage auth data
             localStorage.clear();
             toast.success("Logged out successfully! See you soon.", { icon: '👋' });
-            
-            // Redirect to login page
             navigate('/login', { replace: true });
         } catch (error) {
             console.error("Logout failed", error);
@@ -48,7 +70,7 @@ const Sidebar = ({ role }) => {
     };
 
     // =========================================================================
-    // 3. ROLE-BASED NAVIGATION MODULES
+    // 4. ROLE-BASED NAVIGATION MODULES
     // =========================================================================
     const menuItems = {
         ADMIN: [
@@ -59,7 +81,6 @@ const Sidebar = ({ role }) => {
             { name: 'Projects', icon: <Briefcase size={20}/>, path: '/admin/projects' },
             { name: 'Payroll', icon: <DollarSign size={20}/>, path: '/admin/payroll' },
             { name: 'Settings', icon: <Settings size={20}/>, path: '/admin/settings' }
-            // Notifications removed successfully!
         ],
         HR: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/hr/dashboard' },
@@ -70,23 +91,34 @@ const Sidebar = ({ role }) => {
             { name: 'Payroll Run', icon: <DollarSign size={20}/>, path: '/hr/payroll' },
             { name: 'Performance', icon: <BarChart2 size={20}/>, path: '/hr/performance' },
         ],
-       MANAGER: [
-    { name: 'Executive Dashboard', icon: <LayoutDashboard size={20}/>, path: '/manager/dashboard' },
-    { name: 'Project Architecture', icon: <Briefcase size={20}/>, path: '/manager/projects' },
-    { name: 'Performance Analytics', icon: <BarChart2 size={20}/>, path: '/manager/analytics' },
-    // { name: 'Workforce & Training', icon: <Users size={20}/>, path: '/manager/training' },
-    { name: 'Leave Approvals', icon: <CalendarDays size={20}/>, path: '/manager/leaves' },
-    { name: 'Payroll Operations', icon: <FileText size={20}/>, path: '/manager/payroll' },
-],
+        MANAGER: [
+            { name: 'Executive Dashboard', icon: <LayoutDashboard size={20}/>, path: '/manager/dashboard' },
+            { name: 'Project Architecture', icon: <Briefcase size={20}/>, path: '/manager/projects' },
+            { name: 'Performance Analytics', icon: <BarChart2 size={20}/>, path: '/manager/analytics' },
+            { name: 'Leave Approvals', icon: <CalendarDays size={20}/>, path: '/manager/leaves' },
+            { name: 'Payroll Operations', icon: <FileText size={20}/>, path: '/manager/payroll' },
+        ],
         TL: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
-            { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
+            { name: 'Attendance', icon: <Clock size={20}/>, path: '/tl/attendance' },
+            { name: 'Leaves', icon: <CalendarDays size={20}/>, path: '/tl/leaves' },
+            { name: 'Projects', icon: <Briefcase size={20}/>, path: '/tl/projects' },
+            { name: 'Tasks', icon: <CheckSquare size={20}/>, path: '/tl/tasks' },
             { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
+            { name: 'Performance', icon: <TrendingUp size={20}/>, path: '/tl/performance' },
+            { name: 'Training', icon: <BookOpen size={20}/>, path: '/tl/training' },
+            // { name: 'Notifications', icon: <Bell size={20}/>, path: '/tl/notifications' }
         ],
         TEAM_LEAD: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/tl/dashboard' },
-            { name: 'Team Tasks', icon: <Activity size={20}/>, path: '/tl/tasks' },
+            { name: 'Attendance', icon: <Clock size={20}/>, path: '/tl/attendance' },
+            { name: 'Leaves', icon: <CalendarDays size={20}/>, path: '/tl/leaves' },
+            { name: 'Projects', icon: <Briefcase size={20}/>, path: '/tl/projects' },
+            { name: 'Tasks', icon: <CheckSquare size={20}/>, path: '/tl/tasks' },
             { name: 'My Team', icon: <Users size={20}/>, path: '/tl/team' },
+            { name: 'Performance', icon: <TrendingUp size={20}/>, path: '/tl/performance' },
+            { name: 'Training', icon: <BookOpen size={20}/>, path: '/tl/training' },
+            { name: 'Notifications', icon: <Bell size={20}/>, path: '/tl/notifications' }
         ],
         EMPLOYEE: [
             { name: 'Dashboard', icon: <LayoutDashboard size={20}/>, path: '/employee/dashboard' },
@@ -97,11 +129,10 @@ const Sidebar = ({ role }) => {
         ]
     };
 
-    // Ensure we handle cases where role might not be exactly matched
     const navItems = menuItems[role] || [];
 
     // =========================================================================
-    // 4. RENDER UI
+    // 5. RENDER UI
     // =========================================================================
     return (
         <div style={{ 
@@ -112,7 +143,7 @@ const Sidebar = ({ role }) => {
             flexDirection: 'column', 
             fontFamily: "'Inter', sans-serif"
         }}>
-            {/* Branding Header */}
+            {/* 🔥 DYNAMIC BRANDING HEADER */}
             <div style={{ 
                 padding: '24px', 
                 display: 'flex', 
@@ -121,22 +152,31 @@ const Sidebar = ({ role }) => {
                 borderBottom: `1px solid ${colors.border}`,
                 marginBottom: '10px'
             }}>
-                <div style={{ 
-                    background: 'linear-gradient(135deg, #2563EB, #1E3A8A)', 
-                    color: '#fff', 
-                    width: '36px', 
-                    height: '36px', 
-                    borderRadius: '10px', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center', 
-                    boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)' 
-                }}>
-                    <ShieldCheck size={22} />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                    <span style={{ fontSize: '18px', fontWeight: '800', color: colors.mainText, letterSpacing: '-0.5px' }}>HRM Soft</span>
-                    <span style={{ fontSize: '10px', color: colors.secondaryText, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>Enterprise</span>
+                {brandConfig.companyLogo ? (
+                    <div style={{ 
+                        width: '40px', height: '40px', borderRadius: '10px', 
+                        overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        boxShadow: '0 4px 10px rgba(0, 0, 0, 0.05)', border: `1px solid ${colors.border}`
+                    }}>
+                        <img src={brandConfig.companyLogo} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </div>
+                ) : (
+                    <div style={{ 
+                        background: 'linear-gradient(135deg, #2563EB, #1E3A8A)', color: '#fff', 
+                        width: '36px', height: '36px', borderRadius: '10px', display: 'flex', 
+                        alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(37, 99, 235, 0.3)' 
+                    }}>
+                        <ShieldCheck size={22} />
+                    </div>
+                )}
+                
+                <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <span style={{ fontSize: '17px', fontWeight: '800', color: colors.mainText, letterSpacing: '-0.5px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '160px' }}>
+                        {brandConfig.companyName}
+                    </span>
+                    <span style={{ fontSize: '10px', color: colors.secondaryText, fontWeight: '600', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                        Enterprise
+                    </span>
                 </div>
             </div>
 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../layouts/DashboardLayout';
 import api from '../../api/apiConfig';
-import { RefreshCw, FileSpreadsheet, Edit3, UploadCloud, Calendar, Clock, UserCheck, X } from 'lucide-react';
-import toast from 'react-hot-toast'; 
+import { RefreshCw, FileSpreadsheet, Edit3, UploadCloud, Calendar, Clock, UserCheck, X, Zap, Loader2, Save, Edit2 } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast'; 
 
 const AdminAttendance = () => {
     const [attendance, setAttendance] = useState([]);
@@ -10,14 +10,18 @@ const AdminAttendance = () => {
     const [loading, setLoading] = useState(false);
     const [dragActive, setDragActive] = useState(false);
 
+    // 🔥 Custom Edit Modal States
+    const [editModal, setEditModal] = useState({ isOpen: false, id: null, empId: '', date: '', status: '' });
+    const [isUpdating, setIsUpdating] = useState(false);
+
     // ==========================================
-    // ELITE COLOR PALETTE (Matched Theme)
+    // ELITE COLOR PALETTE
     // ==========================================
     const colors = {
         primaryBlue: '#2563EB', lightBlue: '#EFF6FF', background: '#F8FAFC',
         mainText: '#0F172A', secondaryText: '#64748B',
         successBg: '#DCFCE7', successText: '#16A34A',
-        warningBg: '#FEF9C3', warningText: '#CA8A04',
+        warningBg: '#FEF9C3', warningText: '#CA8A04', warning: '#F59E0B',
         dangerBg: '#FEE2E2', dangerText: '#DC2626',
         border: '#E2E8F0', cardWhite: '#FFFFFF', inputBg: '#F1F5F9'
     };
@@ -38,7 +42,7 @@ const AdminAttendance = () => {
         fetchAttendance();
     }, []);
 
-    // 2. Excel Upload Logic 
+    // 2. Excel Upload Logic
     const handleDrag = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -98,53 +102,74 @@ const AdminAttendance = () => {
     };
 
     // 3. Admin Manual Update Logic
-    const handleManualUpdate = async (id, currentStatus) => {
-        const newStatus = prompt(`Update status for Record ID ${id} (e.g., PRESENT, ABSENT, LATE):`, currentStatus);
-        if (!newStatus || newStatus.toUpperCase() === currentStatus.toUpperCase()) return;
+    const openEditModal = (row) => {
+        setEditModal({ 
+            isOpen: true, 
+            id: row.id, 
+            empId: row.employeeId, 
+            date: row.date, 
+            status: String(row.status || 'PRESENT').toUpperCase() // Default to PRESENT if empty
+        });
+    };
+
+    const handleSaveUpdate = async (e) => {
+        e.preventDefault();
+        const { id, status } = editModal;
+        
+        setIsUpdating(true);
+        const toastId = toast.loading("Updating attendance record...");
 
         try {
-            await api.put(`/api/attendance/admin-update/${id}?status=${newStatus.toUpperCase()}`);
-            toast.success("Attendance updated successfully!");
+            // API Connected to backend logic
+            await api.put(`/api/attendance/admin-update/${id}?status=${status}`);
+            toast.success("Attendance updated successfully!", { id: toastId });
+            setEditModal({ isOpen: false, id: null, empId: '', date: '', status: '' });
             fetchAttendance();
         } catch (err) {
-            toast.error("Failed to update attendance.");
+            toast.error("Failed to update attendance.", { id: toastId });
+        } finally {
+            setIsUpdating(false);
         }
+    };
+
+    const formatCurrentDate = () => {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date().toLocaleDateString('en-US', options);
     };
 
     return (
         <DashboardLayout role="ADMIN" title="Attendance Management">
             <div style={{ padding: '24px 32px', backgroundColor: colors.background, minHeight: '100vh', fontFamily: "'Inter', sans-serif" }}>
+                <Toaster position="top-center" reverseOrder={false} toastOptions={{ duration: 3000 }} />
                 
-                {/* PAGE HEADER */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px', flexWrap: 'wrap', gap: '15px' }}>
-                    <div>
-                        <h1 style={{ fontSize: '28px', fontWeight: '800', color: colors.mainText, margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>
-                            Attendance Management
+                {/* 1. TOP HEADER SECTION */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', flexWrap: 'wrap', gap: '20px' }}>
+                    <div className="fade-in-up" style={{ animationDelay: '0.1s' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                            <span style={{ background: colors.primaryBlue, color: '#fff', padding: '4px 10px', borderRadius: '20px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.5px' }}>LIVE PORTAL</span>
+                            <span style={{ fontSize: '13px', color: colors.secondaryText, fontWeight: '600', display: 'flex', alignItems: 'center', gap: '4px' }}><Calendar size={14}/> {formatCurrentDate()}</span>
+                        </div>
+                        <h1 style={{ margin: '0 0 8px 0', fontSize: '32px', fontWeight: '800', color: colors.mainText, letterSpacing: '-1px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            Attendance Operations 
                         </h1>
-                        <p style={{ color: colors.secondaryText, fontSize: '15px', margin: 0 }}>
+                        <p style={{ margin: 0, color: colors.secondaryText, fontSize: '15px', fontWeight: '500' }}>
                             Sync biometric records and monitor daily employee work logs.
                         </p>
                     </div>
                     <button 
                         onClick={fetchAttendance} 
-                        style={{ 
-                            background: colors.lightBlue, color: colors.primaryBlue, border: `1px solid ${colors.border}`, 
-                            padding: '10px 20px', borderRadius: '10px', cursor: 'pointer', display: 'flex', alignItems: 'center', 
-                            gap: '8px', fontWeight: '700', transition: '0.2s', boxShadow: '0 4px 6px rgba(0,0,0,0.02)'
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = '#DBEAFE'}
-                        onMouseOut={(e) => e.currentTarget.style.background = colors.lightBlue}
+                        className="action-btn outline fade-in-up"
+                        style={{ animationDelay: '0.2s', padding: '10px 20px', borderRadius: '12px' }}
                     >
-                        <RefreshCw size={18} /> Refresh Data
+                        <RefreshCw size={16} /> Refresh Log
                     </button>
                 </div>
 
-                {/* A. COMPACT ELITE UPLOAD BAR */}
-                <div style={{ 
-                    background: colors.cardWhite, padding: '24px 32px', marginBottom: '32px', borderRadius: '24px', 
-                    border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)', display: 'flex',
-                    justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px'
-                }}>
+                {/* 2. COMPACT ELITE UPLOAD BAR */}
+                <div 
+                    className="glass-panel fade-in-up" 
+                    style={{ animationDelay: '0.3s', background: colors.cardWhite, padding: '24px 32px', marginBottom: '32px', borderRadius: '20px', border: `1px solid ${colors.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '20px' }}
+                >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                         <div style={{ background: colors.lightBlue, padding: '12px', borderRadius: '12px', color: colors.primaryBlue }}>
                             <UploadCloud size={24} />
@@ -159,7 +184,15 @@ const AdminAttendance = () => {
                         </div>
                     </div>
 
-                    <form onSubmit={handleFileUpload} style={{ display: 'flex', alignItems: 'center', gap: '12px', background: colors.inputBg, padding: '8px', borderRadius: '16px', border: `1px solid ${colors.border}` }}>
+                    <form 
+                        onSubmit={handleFileUpload} 
+                        onDragEnter={handleDrag} onDragLeave={handleDrag} onDragOver={handleDrag} onDrop={handleDrop}
+                        style={{ 
+                            display: 'flex', alignItems: 'center', gap: '12px', background: dragActive ? colors.lightBlue : colors.inputBg, 
+                            padding: '8px', borderRadius: '16px', border: `1px dashed ${dragActive ? colors.primaryBlue : colors.border}`,
+                            transition: 'all 0.2s ease' 
+                        }}
+                    >
                         <input 
                             id="attendance-upload-input" type="file" accept=".xlsx, .csv, .pdf"
                             onChange={(e) => setFile(e.target.files[0])} style={{ display: 'none' }} 
@@ -167,7 +200,7 @@ const AdminAttendance = () => {
                         
                         <label 
                             htmlFor="attendance-upload-input" 
-                            style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', color: colors.mainText, display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s' }}
+                            style={{ background: '#FFFFFF', border: `1px solid ${colors.border}`, padding: '10px 16px', borderRadius: '10px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', color: colors.mainText, display: 'flex', alignItems: 'center', gap: '8px', transition: '0.2s', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}
                         >
                             <FileSpreadsheet size={16} color={colors.primaryBlue} /> 
                             {file ? 'Change File' : 'Choose File'}
@@ -175,10 +208,10 @@ const AdminAttendance = () => {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: '150px' }}>
                             <span style={{ fontSize: '13px', color: file ? colors.successText : colors.secondaryText, fontWeight: '600', maxWidth: '130px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {file ? file.name : 'No file selected'}
+                                {file ? file.name : 'Drop file here...'}
                             </span>
                             {file && (
-                                <button type="button" onClick={() => setFile(null)} style={{ background: 'transparent', border: 'none', color: colors.dangerText, cursor: 'pointer', padding: '0', display: 'flex', alignItems: 'center' }} title="Remove file">
+                                <button type="button" onClick={() => setFile(null)} style={{ background: colors.dangerBg, border: 'none', color: colors.dangerText, cursor: 'pointer', padding: '4px', borderRadius: '50%', display: 'flex', alignItems: 'center' }} title="Remove file">
                                     <X size={14} />
                                 </button>
                             )}
@@ -188,27 +221,25 @@ const AdminAttendance = () => {
 
                         <button 
                             type="submit" disabled={loading || !file}
+                            className="action-btn submit-btn"
                             style={{ 
-                                background: (loading || !file) ? '#94A3B8' : colors.primaryBlue, color: '#fff', 
-                                padding: '10px 24px', border: 'none', borderRadius: '10px', fontWeight: '700', 
-                                cursor: (loading || !file) ? 'not-allowed' : 'pointer', transition: '0.3s', 
-                                display: 'flex', alignItems: 'center', gap: '8px', fontSize: '14px',
-                                boxShadow: (loading || !file) ? 'none' : '0 4px 10px rgba(37, 99, 235, 0.2)'
+                                background: (loading || !file) ? '#94A3B8' : colors.primaryBlue,
+                                padding: '10px 24px', borderRadius: '10px', boxShadow: (loading || !file) ? 'none' : '0 4px 14px rgba(37, 99, 235, 0.3)'
                             }}
                         >
-                            {loading ? <RefreshCw size={16} className="animate-spin" /> : <UploadCloud size={16} />}
+                            {loading ? <Loader2 size={16} className="spin" /> : <UploadCloud size={16} />}
                             {loading ? 'Syncing...' : 'Execute Sync'}
                         </button>
                     </form>
                 </div>
 
-                {/* B. ATTENDANCE TABLE */}
-                <div style={{ background: colors.cardWhite, padding: '24px', borderRadius: '24px', border: `1px solid ${colors.border}`, boxShadow: '0 4px 20px rgba(0,0,0,0.02)' }}>
+                {/* 3. ATTENDANCE TABLE */}
+                <div className="glass-panel fade-in-up" style={{ animationDelay: '0.4s', background: colors.cardWhite, padding: '24px', borderRadius: '20px', border: `1px solid ${colors.border}` }}>
                     <h3 style={{ margin: '0 0 24px 0', color: colors.mainText, fontSize: '18px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <UserCheck size={20} color={colors.primaryBlue} /> Daily Log Records
                     </h3>
 
-                    <div style={{ overflowX: 'auto' }}>
+                    <div style={{ overflowX: 'auto' }} className="custom-scrollbar">
                         <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', minWidth: '900px', textAlign: 'left' }}>
                             <thead>
                                 <tr>
@@ -272,7 +303,7 @@ const AdminAttendance = () => {
                                             </td>
                                             <td style={{ padding: '16px', textAlign: 'center', borderRadius: '0 12px 12px 0' }}>
                                                 <button 
-                                                    onClick={() => handleManualUpdate(row.id, row.status)}
+                                                    onClick={() => openEditModal(row)}
                                                     style={{ 
                                                         background: '#FFFFFF', color: colors.primaryBlue, border: `1px solid ${colors.border}`, 
                                                         padding: '8px 12px', borderRadius: '8px', cursor: 'pointer', transition: '0.2s',
@@ -300,8 +331,100 @@ const AdminAttendance = () => {
                     </div>
                 </div>
 
+                {/* ========================================================================= */}
+                {/* 🔥 CUSTOM HR-STYLE OVERRIDE MODAL                                         */}
+                {/* ========================================================================= */}
+                {editModal.isOpen && (
+                    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                        <div style={{ background: '#fff', width: '100%', maxWidth: '400px', borderRadius: '24px', overflow: 'hidden', animation: 'slideUp 0.3s ease-out', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+                            
+                            {/* Modal Header (Clean White) */}
+                            <div style={{ padding: '24px 24px 16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <h2 style={{ margin: 0, color: colors.mainText, fontSize: '18px', fontWeight: '800' }}>Override Attendance</h2>
+                                <button onClick={() => setEditModal({ isOpen: false, id: null, empId: '', date: '', status: '' })} style={{ background: 'transparent', border: 'none', padding: '4px', cursor: 'pointer', color: colors.secondaryText, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            
+                            <form onSubmit={handleSaveUpdate} style={{ padding: '0 24px 24px 24px' }}>
+                                
+                                {/* Employee Info Box (Light Blue) */}
+                                <div style={{ background: colors.lightBlue, padding: '16px', borderRadius: '12px', marginBottom: '24px' }}>
+                                    <p style={{ margin: '0 0 4px 0', fontSize: '12px', color: colors.secondaryText, fontWeight: '600' }}>Employee ID</p>
+                                    <p style={{ margin: '0 0 8px 0', fontSize: '16px', color: colors.primaryBlue, fontWeight: '800' }}>{editModal.empId}</p>
+                                    <p style={{ margin: 0, fontSize: '12px', color: colors.secondaryText, display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '500' }}>
+                                        <Calendar size={14} /> Date: {editModal.date}
+                                    </p>
+                                </div>
+
+                                {/* Select New Status Dropdown */}
+                                <div style={{ marginBottom: '24px' }}>
+                                    <label style={{ display: 'block', fontSize: '13px', fontWeight: '800', color: colors.mainText, marginBottom: '8px' }}>
+                                        Select New Status
+                                    </label>
+                                    <select 
+                                        required
+                                        value={editModal.status} 
+                                        onChange={(e) => setEditModal({...editModal, status: e.target.value})}
+                                        style={{ 
+                                            width: '100%', padding: '14px 16px', borderRadius: '12px', 
+                                            border: `1px solid ${colors.border}`, background: colors.cardWhite, 
+                                            outline: 'none', fontSize: '14px', fontWeight: '600', color: colors.mainText, 
+                                            cursor: 'pointer', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' 
+                                        }}
+                                    >
+                                        <option value="PRESENT">Present</option>
+                                        <option value="ABSENT">Absent</option>
+                                        <option value="LATE">Late</option>
+                                        <option value="HALF DAY">Half Day</option>
+                                        <option value="PRESENT (AD)">Present (AD)</option>
+                                    </select>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                                    <button type="submit" disabled={isUpdating} style={{ flex: 1, background: colors.primaryBlue, color: '#fff', border: 'none', padding: '14px 20px', borderRadius: '12px', fontWeight: '700', cursor: isUpdating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(37,99,235,0.2)' }}>
+                                        {isUpdating ? <Loader2 size={16} className="spin" /> : <Save size={16} />}
+                                        {isUpdating ? 'Saving...' : 'Update Status'}
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                )}
+
+                {/* ========================================================================= */}
+                {/* ELITE CUSTOM CSS STYLES (Injected directly)                               */}
+                {/* ========================================================================= */}
+                <style>
+                    {`
+                        .fade-in-up { opacity: 0; animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+                        @keyframes fadeInUp { 
+                            0% { opacity: 0; transform: translateY(30px) scale(0.98); } 
+                            100% { opacity: 1; transform: translateY(0) scale(1); } 
+                        }
+                        
+                        .action-btn { display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; }
+                        .action-btn.outline { background: white; color: ${colors.mainText}; border: 1px solid ${colors.border}; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+                        .action-btn.outline:hover { background: ${colors.inputBg}; border-color: #CBD5E1; transform: translateY(-2px); }
+                        .submit-btn { color: white; justify-content: center; font-size: 14px; }
+                        .submit-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(37,99,235,0.4) !important; }
+                        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+                        
+                        .glass-panel { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+                        .glass-panel:hover { box-shadow: 0 20px 40px -10px rgba(0,0,0,0.08) !important; transform: translateY(-2px); }
+
+                        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+                        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+                        .custom-scrollbar::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 10px; }
+                        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+                        
+                        .spin { animation: spin 1s linear infinite; }
+                        @keyframes spin { 100% { transform: rotate(360deg); } }
+                        @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+                    `}
+                </style>
             </div>
-            <style>{`.animate-spin { animation: spin 1s linear infinite; } @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
         </DashboardLayout>
     );
 };

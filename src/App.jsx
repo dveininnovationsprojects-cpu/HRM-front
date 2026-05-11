@@ -43,9 +43,17 @@ import ManagerLeaves from './pages/manager/ManagerLeaves';       // <--- NEW: Ad
 import ManagerAnalytics from './pages/manager/ManagerAnalytics'; // <--- NEW: Added Deep Analytics
 
 // ==========================================
-// 5. TL COMPONENTS
+// 5. TL COMPONENTS (Mass TL Updates)
 // ==========================================
 import TLDashboard from './pages/TLDashboard';
+import TLAttendance from './pages/TL/TLAttendance';
+import TLLeaves from './pages/TL/TLLeaves';
+import TLNotifications from './pages/TL/TLNotifications';
+import TLPerformance from './pages/TL/TLPerformance';
+import TLProjects from './pages/TL/TLProjects';
+import TLTasks from './pages/TL/TLTasks';
+import TLTeam from './pages/TL/TLTeam';
+import TLTraining from './pages/TL/TLTraining';
 
 // ==========================================
 // 6. EMPLOYEE COMPONENTS (Selva's format)
@@ -161,10 +169,16 @@ function App() {
         <Route path="/manager/leaves" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerLeaves /></ProtectedRoute>} /> {/* <--- NEW */}
         <Route path="/manager/analytics" element={<ProtectedRoute allowedRoles={['MANAGER', 'ADMIN']}><ManagerAnalytics /></ProtectedRoute>} /> {/* <--- NEW */}
 
-        {/* 5. TL ROUTES */}
+        {/* 5. TL ROUTES (Properly Linked Components) */}
         <Route path="/tl/dashboard" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
-        <Route path="/tl/tasks" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
-        <Route path="/tl/team" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLDashboard /></ProtectedRoute>} />
+        <Route path="/tl/attendance" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLAttendance /></ProtectedRoute>} />
+        <Route path="/tl/leaves" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLLeaves /></ProtectedRoute>} />
+        <Route path="/tl/notifications" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLNotifications /></ProtectedRoute>} />
+        <Route path="/tl/performance" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLPerformance /></ProtectedRoute>} />
+        <Route path="/tl/projects" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLProjects /></ProtectedRoute>} />
+        <Route path="/tl/tasks" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLTasks /></ProtectedRoute>} />
+        <Route path="/tl/team" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLTeam /></ProtectedRoute>} />
+        <Route path="/tl/training" element={<ProtectedRoute allowedRoles={['TL', 'TEAM_LEAD', 'MANAGER', 'ADMIN']}><TLTraining /></ProtectedRoute>} />
 
         {/* 6. EMPLOYEE ROUTES */}
         <Route path="/employee/dashboard" element={<ProtectedRoute allowedRoles={['EMPLOYEE']}><EmployeeDashboard /></ProtectedRoute>} />
